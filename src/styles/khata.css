@@ -1,0 +1,66 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand (Paytm, spec 2026-11-19)
+ * paper: oklch(98.1% 0.005 258) · accent: oklch(73.7% 0.145 229) · display: Figtree · body: Figtree
+ * nav: navy sidebar with Hindi sublabels, light top bar · signature: the rozmel, a running day-book of today's UPI receipts · states: loading, empty, error, full
+ * axes: light/geometric-sans/chromatic-cyan · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, the khata is a ruled ledger with a running-baaki column and the pay page is one column of type and one QR; cyan is only the one primary button */
+
+/* ---- khata and customers ---- */
+.kh-top { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: var(--space-lg) var(--space-xl); align-items: start; padding-bottom: var(--space-lg); }
+.kh-figs { display: grid; gap: var(--space-md); }
+.kh-ageing h2, .kh-list h2, .kh-ledger-title h2, .pay-notice h1 { text-wrap: balance; }
+.kh-ageing h2, .kh-list h2 { margin-bottom: var(--space-sm); font-size: var(--text-md); font-weight: 700; }
+.kh-list { display: grid; gap: var(--space-sm); }
+.kh-filters { display: grid; grid-template-columns: minmax(0, 18rem) repeat(auto-fill, minmax(11rem, 14rem)); gap: var(--space-xs) var(--space-md); align-items: end; }
+.kh-quiet { color: var(--color-muted); }
+.kh-out { color: var(--color-error); }
+.kh-in { color: var(--color-success); }
+
+.kh-ledger { display: grid; gap: var(--space-md); margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 2px solid var(--color-navy); scroll-margin-top: calc(var(--topbar-h) + var(--space-md)); }
+.kh-ledger:focus-visible { outline: none; }
+.kh-ledger-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); }
+.kh-ledger-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); }
+.kh-ledger-title h2 { font-size: var(--text-xl); font-weight: 700; letter-spacing: var(--tracking-display); }
+.kh-ledger-figs { max-width: 46rem; }
+.kh-why h3 { font-size: var(--text-sm); font-weight: 700; }
+.kh-why ul { margin: var(--space-2xs) 0 0; padding-left: var(--space-md); color: var(--color-muted); font-size: var(--text-sm); }
+.kh-link { display: grid; gap: var(--space-xs); justify-items: start; }
+.kh-link > .field { width: min(100%, 44rem); }
+.kh-link-row { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.kh-link-row .ctl { flex: 1 1 14rem; width: auto; }
+.kh-link-err { color: var(--color-error); font-size: var(--text-sm); }
+.kh-foot { color: var(--color-muted); font-size: var(--text-sm); }
+
+.cu-panel { display: grid; gap: var(--space-sm); }
+.cu-meaning { color: var(--color-muted); font-size: var(--text-sm); }
+.cu-note { color: var(--color-muted); font-size: var(--text-sm); }
+.cu-link { padding: 0; border: 0; background: none; color: var(--color-navy); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; min-height: var(--control-h); }
+
+@media (max-width: 60rem) { .kh-top { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 40rem) { .kh-filters { grid-template-columns: minmax(0, 1fr); } .kh-link-row > * { flex: 1 1 100%; } }
+
+/* ---- /pay/[token]: one purpose, one column, phone first ---- */
+.pay { display: flex; flex-direction: column; min-height: 100dvh; background: var(--color-paper); }
+.pay-col { flex: 1; width: 100%; max-width: 26rem; margin-inline: auto; padding: var(--space-lg) var(--space-md) var(--space-xl); display: grid; align-content: start; gap: var(--space-md); }
+.pay-shop { padding-bottom: var(--space-xs); border-bottom: 2px solid var(--color-navy); color: var(--color-navy); font-size: var(--text-lg); font-weight: 700; }
+.pay-amount { display: grid; gap: var(--space-2xs); font-weight: 500; }
+.pay-who { color: var(--color-muted); font-size: var(--text-md); }
+.pay-fig { font-size: var(--text-figure); font-weight: 700; line-height: 1.1; letter-spacing: var(--tracking-display); color: var(--color-navy); overflow-wrap: anywhere; }
+.pay-hint { color: var(--color-muted); font-size: var(--text-sm); }
+.pay h2 { font-size: var(--text-md); font-weight: 700; }
+.pay-qr-wrap, .pay-vpa, .pay-done { display: grid; gap: var(--space-xs); padding-top: var(--space-md); border-top: 1px solid var(--color-rule); }
+.pay-qr { display: block; width: min(100%, 16rem); height: auto; aspect-ratio: 1; border: 1px solid var(--color-rule-strong); }
+.pay-qr-bg { fill: var(--color-paper-2); }
+.pay-qr-ink { fill: var(--color-ink); }
+.pay-vpa-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); }
+.pay-vpa-id { flex: 1 1 10rem; min-width: 0; padding: var(--space-xs) var(--space-sm); border: 1px solid var(--color-rule-strong); border-radius: var(--radius-control); background: var(--color-paper-2); font: inherit; font-size: var(--text-md); font-weight: 600; overflow-wrap: anywhere; user-select: all; }
+.pay-done { justify-items: start; }
+.pay-err { color: var(--color-error); font-size: var(--text-sm); }
+.pay-notice { display: grid; gap: var(--space-xs); padding-top: var(--space-md); }
+.pay-notice h1 { font-size: var(--text-xl); font-weight: 700; letter-spacing: var(--tracking-display); }
+.pay-en { color: var(--color-muted); font-size: var(--text-sm); }
+.pay-skel { display: grid; gap: var(--space-md); }
+.pay-skel-line { height: 1.4rem; width: 55%; }
+.pay-skel-fig { height: 2.6rem; width: 70%; }
+.pay-skel-btn { height: var(--control-h); width: 100%; }
+.pay-skel-qr { height: 14rem; width: 14rem; }
+.pay-foot { padding: var(--space-md); border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); text-align: center; }

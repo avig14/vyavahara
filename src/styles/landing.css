@@ -1,0 +1,74 @@
+/* Hallmark · shape: landing/page · genre: modern-minimal · theme: brand (Paytm, spec 2026-11-19) · job: try
+ * paper: oklch(98.1% 0.005 258) · accent: oklch(73.7% 0.145 229) · display: Figtree · body: Figtree
+ * hero: stage · nav: edge-aligned wordmark and one Privacy link · footer: one colophon line, wordmark and Privacy link · signature: the rozmel, a ruled day-book with a running total, labelled Example · states: loading, empty, error, full
+ * axes: light/geometric-sans/chromatic-cyan · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, text beside a visual is the common hero; kept it because the ruled rozmel is the strongest real thing the product has, and made the second section a full-width ruled table instead of a split or three tiles */
+
+/* ---- shared chrome (landing, onboarding, privacy) ---- */
+.lp { display: flex; flex-direction: column; min-height: 100dvh; }
+.lp-nav { border-bottom: 1px solid var(--color-rule); }
+.lp-nav-in { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: calc(var(--topbar-h) + var(--space-sm)); }
+.lp-mark { display: inline-flex; align-items: baseline; gap: var(--space-xs); min-height: var(--control-h); align-items: center; color: var(--color-navy); font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-display); text-decoration: none; }
+.lp-mark .deva { font-size: var(--text-md); font-weight: 500; color: var(--color-muted); }
+.lp-link { display: inline-flex; align-items: center; min-height: var(--control-h); padding-inline: var(--space-2xs); color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 600; text-decoration-color: var(--color-rule-strong); }
+.lp-mark:focus-visible, .lp-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.lp-mark:active, .lp-link:active { color: var(--color-ink); }
+.lp-link:hover { text-decoration-color: var(--color-navy); color: var(--color-navy); }
+.lp-main { flex: 1; }
+.lp-foot { margin-top: var(--section-gap-s); border-top: 1px solid var(--color-rule); }
+.lp-foot-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-lg); padding-block: var(--space-lg); color: var(--color-muted); font-size: var(--text-sm); }
+.lp-foot-in .lp-mark { font-size: var(--text-md); }
+
+/* ---- landing hero: text on five columns, the rozmel on seven ---- */
+.lp-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: var(--space-2xl); min-height: calc(100dvh - var(--topbar-h) - var(--space-sm) - var(--space-md)); padding-block: var(--space-xl); }
+.lp-text { display: grid; gap: var(--space-lg); justify-items: start; min-width: 0; }
+h1, h2 { text-wrap: balance; }
+.lp-h1 { max-width: 14ch; font-size: clamp(var(--text-3xl), 4vw, calc(var(--text-3xl) * 1.7)); line-height: 1.04; }
+.lp-lead { max-width: 30ch; font-size: var(--text-xl); line-height: 1.35; color: var(--color-ink-2); }
+.lp-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.lp-actions .btn { min-height: calc(var(--control-h) + var(--space-sm)); padding-inline: var(--space-lg); font-size: var(--text-md); }
+
+/* the rozmel example: one ruled surface, a caption that says Example */
+.lp-roz { margin: 0; min-width: 0; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-card); background: var(--color-paper-2); }
+.lp-roz-cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-sm); padding: var(--space-md) var(--space-lg) var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+.lp-roz .tbl-wrap { padding: 0 var(--space-md) var(--space-sm); }
+.lp-roz .tbl { font-size: var(--text-lg); }
+.lp-roz .tbl th { font-size: var(--text-sm); }
+.lp-roz .tbl td { padding-block: var(--space-xl); }
+.lp-roz .tbl tbody tr:last-child td { border-bottom: 0; }
+.lp-roz .tbl td.tot { font-weight: 700; color: var(--color-navy); }
+
+/* ---- after a payment: a full-width ruled table under a large head ---- */
+.lp-after { display: grid; gap: var(--space-xl); padding-top: var(--section-gap-s); }
+.lp-h2 { max-width: 24ch; font-size: clamp(var(--text-2xl), 3.6vw, calc(var(--text-3xl) * 1.6)); line-height: 1.06; }
+.lp-after .tbl { font-size: var(--text-lg); }
+.lp-after .tbl th { font-size: var(--text-sm); }
+.lp-after .tbl td { padding-block: var(--space-lg); }
+.lp-after .tbl td:first-child { font-weight: 600; width: 26%; }
+.lp-after .tbl td:last-child { width: 14%; white-space: nowrap; }
+.lp-after .where-hi { display: block; color: var(--color-muted); font-size: var(--text-sm); }
+
+/* ---- privacy: the table is the first screen, then short sections far apart ---- */
+.pv { display: grid; gap: var(--section-gap-l); padding-block: var(--space-xl) 0; }
+.pv-first { display: grid; gap: var(--space-lg); }
+.pv-h1 { max-width: 20ch; font-size: clamp(var(--text-2xl), 3.4vw, calc(var(--text-3xl) * 1.5)); line-height: 1.05; }
+.pv-first .tbl { font-size: var(--text-lg); }
+.pv-first .tbl td { padding-block: calc(var(--space-md) + var(--space-2xs)); }
+.pv-first .tbl td:first-child { font-weight: 600; }
+.pv-sec { display: grid; gap: var(--space-lg); border-top: 1px solid var(--color-rule-strong); padding-top: var(--space-xl); }
+.pv-body { display: grid; gap: var(--space-md); }
+.pv-sec h2 { max-width: 26ch; font-size: clamp(var(--text-2xl), 3.6vw, calc(var(--text-3xl) * 1.6)); line-height: 1.06; }
+.pv-sec p { font-size: var(--text-xl); line-height: 1.4; max-width: 50ch; }
+.pv-sec h2 { margin-top: 0; }
+
+@media (max-width: 60rem) {
+  .lp-hero { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); padding-block: var(--space-xl); min-height: 0; }
+  .lp-after { padding-top: var(--section-gap-s); }
+}
+@media (max-width: 40rem) {
+  .lp-roz-cap { padding-inline: var(--space-md); }
+  .lp-roz .tbl-wrap { padding-inline: var(--space-sm); }
+  .lp-after .tbl td:first-child, .lp-after .tbl td:last-child { width: auto; }
+  .lp-after .where-hi { display: inline; margin-left: var(--space-2xs); }
+  .lp-actions .btn { width: 100%; }
+}
