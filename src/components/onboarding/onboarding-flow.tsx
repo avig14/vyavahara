@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Badge, Button, buttonClass, CheckIcon, ErrorState, SkeletonRows } from "@/components/ui";
 import { ApiError, postJson, toApiError, useApi } from "@/lib/ui/api";
 import { useQueryState } from "@/lib/ui/url-state";
+import { WaJoin } from "@/components/reports/wa-join";
 
 const STEPS = ["1", "2", "3", "4"] as const;
 type Step = (typeof STEPS)[number];
@@ -41,6 +42,7 @@ export function OnboardingFlow() {
   const [step, setStep] = useQueryState<Step>("step", { defaultValue: "1", allowed: STEPS });
   const [connect, setConnect] = useState<Connect>({ phase: "idle" });
   const shop = useApi<{ merchant: { name: string; ownerName: string } }>("/api/dashboard/overview");
+  const wa = useApi<{ connected: boolean }>("/api/whatsapp/status");
 
   // move focus to the new step's heading, but not on first paint
   const title = useRef<HTMLHeadingElement>(null);
@@ -178,13 +180,10 @@ export function OnboardingFlow() {
             <h2 id="ob-title" className="ob-title" ref={title} tabIndex={-1}>
               WhatsApp
             </h2>
-            <div className="ob-status">
-              <Badge tone="warn">Not connected yet</Badge>
-            </div>
             <div className="ob-text">
-              <p>Reports reach WhatsApp through Meta&apos;s official Cloud API. There is no QR code to scan.</p>
-              <p>Add your number and send a report from the Reports page. Setup steps are in docs/WHATSAPP-SETUP.md.</p>
+              <p>Scan the QR with your phone and send the pre-filled message once. Then the bot can reply to you, and you can ask for reports, stock and khata from WhatsApp.</p>
             </div>
+            <WaJoin />
             <div className="ob-actions">
               <Button variant="primary" onClick={() => setStep("4")}>
                 Finish setup
@@ -205,7 +204,7 @@ export function OnboardingFlow() {
               rows={[
                 { label: "Shop", value: shopName ?? (shop.error ? "Could not load" : "Loading") },
                 { label: "Paytm", value: paytm ? <Badge tone="success">Connected</Badge> : <Badge tone="warn">Not connected in this visit</Badge> },
-                { label: "WhatsApp", value: <Badge tone="warn">Not connected yet</Badge> },
+                { label: "WhatsApp", value: wa.data?.connected ? <Badge tone="success">Connected</Badge> : <Badge tone="warn">Not connected yet</Badge> },
               ]}
             />
             {paytm ? null : (

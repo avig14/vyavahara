@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { Badge, Button, EmptyState, ErrorState, Skeleton, Table } from "@/components/ui";
 import { RefreshIcon } from "@/components/ui/icons";
 import { num, rupees, rupeesExact } from "@/lib/format";
@@ -115,6 +116,7 @@ export function SoundboxView() {
     <div className="sb">
       <header className="sb-bar">
         <span className="sb-mark">
+          <LogoMark size={36} />
           <span className="sb-mark-latin">Vyavahāra</span>
           <span className="sb-mark-deva deva" lang="hi">
             व्यवहार

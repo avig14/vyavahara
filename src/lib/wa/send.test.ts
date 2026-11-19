@@ -13,7 +13,6 @@ vi.mock("../db/queries", () => ({
   markWaFailed: async (_d: unknown, id: string, code: number | null) => void log.push(`failed:${id}:${code}`),
 }));
 
-import { intentOf } from "./router";
 import { sendReportToOwner, windowOpenUntil } from "./send";
 
 const cfg = { token: "T", phoneNumberId: "1", version: "v27.0" };
@@ -74,17 +73,4 @@ describe("24h window", () => {
     expect(windowOpenUntil(new Date("2026-11-19T00:00:00Z"), now)?.toISOString()).toBe("2026-11-20T00:00:00.000Z");
     expect(windowOpenUntil(new Date("2026-11-18T11:59:00Z"), now)).toBeNull();
   });
-});
-
-describe("inbound intent", () => {
-  it("greetings and empty input open the menu", () => {
-    for (const t of ["Hi", "hello", "Namaste", "menu", "HELP", "0", "", "  "]) expect(intentOf(t)).toBe("menu");
-  });
-  it("menu digits and words pick the canned answers", () => {
-    expect(["1", "2", "3", "4", "5"].map((t) => intentOf(t))).toEqual(["report", "stock", "khata", "suppliers", "pdf"]);
-    expect(intentOf("PDF")).toBe("pdf");
-    expect(intentOf("udhaar")).toBe("khata");
-  });
-  it("a tapped list reply wins over the text", () => expect(intentOf(null, "2")).toBe("stock"));
-  it("anything else goes to the agent", () => expect(intentOf("aaj kitni sale hui?")).toBe("agent"));
 });

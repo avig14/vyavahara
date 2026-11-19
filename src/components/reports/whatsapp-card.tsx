@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { Badge, Button, Field, Input, useToast, type BadgeTone } from "@/components/ui";
 import { postJson, toApiError, useApi } from "@/lib/ui/api";
 import { istStamp } from "@/lib/ui/dates";
+import { WaJoin } from "./wa-join";
 
 interface WaStatusPayload {
+  provider: "twilio" | "meta" | null;
+  connected: boolean;
   configured: boolean;
   webhookReady: boolean;
   number: string | null;
@@ -27,14 +30,14 @@ const STATUS: Record<string, { label: string; tone: BadgeTone }> = {
   read: { label: "Padh liya", tone: "success" },
   failed: { label: "Nahi gaya", tone: "danger" },
 };
-const KIND: Record<string, string> = { report: "Report", template: "Chat kholne ka message", reply: "Bot ka jawab", menu: "Menu" };
+const KIND: Record<string, string> = { report: "Report", template: "Chat kholne ka message", reply: "Bot ka jawab", menu: "Menu", alert: "Khata alert", pdf: "PDF report" };
 
 /** Still on its way: keep checking. Delivered/read/failed are final. */
 const inFlight = (s?: string) => s === "sending" || s === "sent";
 
 /**
  * Send the same analysis to the owner's WhatsApp and watch it arrive. The token lives on the server; this only
- * calls our own routes. "Delivered" and "read" come from Meta's webhook, so without it the status stops at "Bhej diya".
+ * calls our own routes. "Delivered" and "read" come from the provider's status callback, so without it the status stops at "Bhej diya".
  */
 export function WhatsAppCard() {
   const toast = useToast();
@@ -106,14 +109,14 @@ export function WhatsAppCard() {
 
       {data && !configured ? (
         <p className="wa-note wa-bad" role="status">
-          WhatsApp abhi set up nahi hai. <code>WHATSAPP_ACCESS_TOKEN</code> aur <code>WHATSAPP_PHONE_NUMBER_ID</code> .env mein daalo. Steps: <code>docs/WHATSAPP-SETUP.md</code>.
+          WhatsApp abhi set up nahi hai. <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code> aur <code>TWILIO_WHATSAPP_FROM</code> .env mein daalo. Steps: <code>docs/WHATSAPP-SETUP.md</code>.
         </p>
       ) : null}
 
       {data ? (
         <>
           <div className="wa-row">
-            <Field label="Aapka WhatsApp number" hint={data.number ? `Abhi saved: ${data.number}` : "10 digit number. Meta test list mein verify kiya hua hona chahiye."} error={phoneError}>
+            <Field label="Aapka WhatsApp number" hint={data.number ? `Abhi saved: ${data.number}` : "10 digit number, jis par WhatsApp chalta hai."} error={phoneError}>
               <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </Field>
             <Button onClick={save} loading={saving} disabled={!phone.trim()}>
@@ -121,7 +124,9 @@ export function WhatsAppCard() {
             </Button>
           </div>
 
-          {data.number ? (
+          {configured && !data.connected ? <WaJoin /> : null}
+
+          {data.number && data.connected ? (
             <p className="wa-note">
               {data.windowOpenUntil
                 ? `Chat khula hai, ${istStamp(data.windowOpenUntil)} tak report seedha jayegi.`
@@ -154,7 +159,7 @@ export function WhatsAppCard() {
           ) : null}
 
           {!data.webhookReady && data.messages.length ? (
-            <p className="wa-note">Webhook set nahi hai, isliye status &ldquo;Bhej diya&rdquo; par ruk jayega. &ldquo;Pahunch gaya&rdquo; aur &ldquo;Padh liya&rdquo; ke liye webhook jodo.</p>
+            <p className="wa-note">Status callback set nahi hai, isliye status &ldquo;Bhej diya&rdquo; par ruk jayega. &ldquo;Pahunch gaya&rdquo; aur &ldquo;Padh liya&rdquo; ke liye public https URL (APP_BASE_URL) chahiye.</p>
           ) : null}
         </>
       ) : null}

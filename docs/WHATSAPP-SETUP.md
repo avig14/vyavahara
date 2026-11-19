@@ -1,91 +1,102 @@
-# WhatsApp setup (Meta Cloud API, free test number)
+# WhatsApp setup (Twilio sandbox first, Meta Cloud API as fallback)
 
-Vyavahāra talks to WhatsApp through Meta's official Cloud API. No Twilio, no paid number, no WhatsApp Web automation.
-Cost for the demo: zero. The test number can message up to 5 recipient numbers.
+Vyavahāra's WhatsApp agent runs on **Twilio** (the channel the PRD names). The Twilio sandbox needs no business verification, but a trial account cannot send free text (see the note below).
+The Meta Cloud API path is still in the code and takes over only if the Twilio env vars are empty.
 
-> **Status:** the code is unit-tested against mocked Meta responses (request shape, error mapping, signature check, webhook parsing, status ordering).
-> It has **not** been run against live Meta, because that needs your Meta credentials. Do the live test below before the demo.
+> **READ FIRST (20 Nov 2026):** a Twilio **trial** account can receive messages but cannot send free text (error 21654, only Twilio's fixed templates). The bot can answer only after the Twilio account is upgraded, or on Meta once verified. Full trace and fix paths: `docs/WHATSAPP-TRACE-2026-11-20.md`. Also: the inbound webhook must be set in the Console (step 3) or Twilio sends its own "Standard auto-reply".
+>
+> **Status:** every branch is unit- and flow-tested with fake Twilio/Sarvam/Claude (signature check against Twilio's own SDK, send request shape, error mapping, the whole menu, voice, photo, PDF, alerts, dedupe).
+> It has **not** been run against live Twilio yet. Do the 5-minute live check below first.
 
-## What it does
+## What the owner gets on WhatsApp
 
-| Where | What |
+| Send | Bot does |
 |---|---|
-| Reports page, **Send Report on WhatsApp** | Sends today's analysis: sales, trend, profit, stock to order, overstock, slow movers, udhaar, supplier dues, suggestions. Same numbers as the dashboard and PDF. |
-| Same card | Number entry, 24-hour chat indicator, last messages with status: Bhej rahe hain → Bhej diya → Pahunch gaya → Padh liya, or Nahi gaya with the reason. |
-| Phone, after webhook is set | Owner writes **Hi** and gets a menu: 1 report, 2 stock, 3 udhaar, 4 suppliers, 5 PDF link. Any other question goes to the same AI agent as the dashboard chat. A waiting 1/2 confirmation still works. |
+| `Hi` / `Menu` / `0` | Main menu: 1 Stock · 2 Sales and profit · 3 Khata · 4 Suppliers and orders · 5 Reports |
+| `1`…`5`, then a number | The PRD A6 tree (27 options). Lists and numbers come from code, not AI. No cost. |
+| `9` | Back to the main menu |
+| `PDF bhejo`, `week ka pdf` | Short text, then the PDF as its own message |
+| `Suresh 300` / `Ramesh 500 mila` (after 3.2) | Writes udhaar or payment. Risky udhaar asks `1` = haan, `2` = nahi first |
+| A voice note | Sarvam turns it into text, then it is handled like typing. Bot first says what it heard |
+| A supplier bill photo | Reads it, shows what it found, asks `1`/`2` before stock changes |
+| A payment screenshot | Checks it against Paytm records. Not found says "record mein nahi mila", never "fraud" |
+| Any other sentence | The same AI agent as the dashboard chat (needs `ANTHROPIC_API_KEY`) |
+| Proactive | A customer turns red → one alert with `1` block udhaar, `2` reminder, `3` ignore. Rules (on/off, hours, cool-down) are merchant settings |
 
-Menu answers cost nothing (no AI call). Expiry alerts are not included: this app does not track expiry dates, and nothing is invented.
+## The rules Twilio sets (the code already follows them)
 
-## The 24-hour rule (important for the demo)
+- **Sandbox join.** The owner sends the join phrase once (`join twilio-trial` for this account). It expires after 3 days of silence: send it again.
+- **24-hour window.** Free text and PDFs only inside 24 h of the owner's last message. Outside it Twilio errors 63016 and the bot says so. A proactive alert then waits and is shown on the owner's next message.
+- **Trial cap: 50 messages per rolling 24 h** (error 63038). The bot stops at `TWILIO_DAILY_CAP` (default 40) so a demo never dies mid-sentence.
+- **Message size:** 1,600 characters max. Long answers are split at 1,500.
+- **A PDF goes alone** (WhatsApp drops text sent with a document), so the text comes first.
 
-WhatsApp only allows free-form messages within 24 hours of the owner's last message to you. Outside that window Meta rejects them (error 131047).
+## Setup (about 10 minutes)
 
-- The dashboard tries the report first. If Meta says the window is closed it sends Meta's pre-approved `hello_world` template instead and tells you to reply **Hi** on your phone, then press Send again.
-- So before the demo: **send "Hi" from your phone to the test number.** Then the report goes through directly.
-- The card shows "Chat khula hai ... tak" only after the webhook is set (it learns about your Hi from the webhook).
-
-## Manual steps (about 15 minutes)
-
-1. **Meta developer account and app.** Go to developers.facebook.com, log in, *Create app*, use case *Connect with customers through WhatsApp* (Business type). Add the **WhatsApp** product.
-2. **Test number.** Open *WhatsApp → API Setup*. Meta gives you a free test number. Copy its **Phone number ID** (not the number itself) → `WHATSAPP_PHONE_NUMBER_ID`.
-3. **Add and verify your recipient.** On the same page, under *To*, add your own WhatsApp number. Meta sends a code to your WhatsApp. Enter it. Only verified numbers can receive (error 131030 otherwise).
-4. **Token.**
-   - Quick: copy the *Temporary access token* from API Setup → `WHATSAPP_ACCESS_TOKEN`. It **expires in about 24 hours**.
-   - Demo-safe: Business Settings → Users → *System users* → add one → assign your app (full control) → *Generate token* with `whatsapp_business_messaging` and `whatsapp_business_management`, never expires. Use this one.
-5. **Put them in `.env.local`** (and in Vercel → Project → Settings → Environment Variables for the deployed site):
+1. **Join the sandbox.** Twilio Console → *Messaging → Try it out → Send a WhatsApp message*. From the owner's phone send the join phrase to the sandbox number.
+2. **Env vars** (`.env.local` and Vercel → Settings → Environment Variables):
    ```
-   WHATSAPP_ACCESS_TOKEN=...
-   WHATSAPP_PHONE_NUMBER_ID=...
+   TWILIO_ACCOUNT_SID=AC...
+   TWILIO_AUTH_TOKEN=...
+   TWILIO_WHATSAPP_FROM=+17372508034      # the sandbox number
+   APP_BASE_URL=https://vyavahara.vercel.app
    ```
-   Optional `WHATSAPP_API_VERSION` (default `v27.0`). Restart `npm run dev` after editing.
-6. **Save your number in the dashboard.** Reports page → WhatsApp card → type your number (10 digits is fine) → *Number save karo*.
-7. **Send Hi** from your phone to the test number (opens the 24-hour window).
-8. Press **Send Report on WhatsApp**.
+   Restart `npm run dev` or redeploy after editing. Never paste the token into chat or commit it.
+3. **Inbound webhook.** Console → *Messaging → Try it out → Send a WhatsApp message → Sandbox settings*.
+   - *When a message comes in:* `https://vyavahara.vercel.app/api/twilio/webhook` (method **POST**)
+   - *Status callback URL:* `https://vyavahara.vercel.app/api/twilio/status` (method **POST**)
+   - Save. (This is the sandbox page, not the "Senders" page.)
+4. **Save the owner's number** in the dashboard (Reports page or onboarding, step 3).
+5. **Connect.** Scan the QR in onboarding or on the Reports page. WhatsApp opens with the join phrase pre-filled. Press Send, then write `Hi`. The page flips to "✅ WhatsApp connected".
 
-### Optional: webhook (delivered/read ticks and the inbound menu)
+If the webhook URL is wrong or the signature check fails, the route answers 401 and nothing reaches the bot. The check uses `APP_BASE_URL`. If you test through a tunnel, set `TWILIO_WEBHOOK_BASE` to the tunnel URL.
 
-Needs a public HTTPS address. Use the Vercel deployment, or locally `npx cloudflared tunnel --url http://localhost:3000` (or ngrok).
+## Live check (use about 10 of the free messages)
 
-1. Set `WHATSAPP_VERIFY_TOKEN` to any random string you choose and `WHATSAPP_APP_SECRET` to your app's secret (App Dashboard → *App settings → Basic → App secret*). Add both to env, redeploy/restart.
-2. Also set `APP_BASE_URL` to the public address (used for PDF links).
-3. App Dashboard → *WhatsApp → Configuration → Webhook → Edit*: Callback URL `<public address>/api/whatsapp/webhook`, Verify token = your `WHATSAPP_VERIFY_TOKEN`. *Verify and save*.
-4. Under *Webhook fields*, **subscribe to `messages`**.
-5. Production refuses webhook posts if `WHATSAPP_APP_SECRET` is missing. Posts with a wrong signature get 401.
+1. `Hi` → main menu.
+2. `1` → stock module, then `3` → items to order.
+3. `9`, then `5`, then `4` → PDF arrives as its own message.
+4. Send a short voice note ("aaj ki sale kitni hui") → "🎙️ Suna: …" then the answer.
+5. Send a photo of a supplier bill → review with 1/2.
+6. Dashboard → Reports → **Send Report on WhatsApp**.
 
-Without the webhook, sending still works. Status stops at "Bhej diya" and the inbound menu is off.
+Things only a live run can confirm: Twilio's real PDF size limit, media download auth, and whether Content Templates (list pickers) work on the trial. Numbered text is the fallback and already works.
 
-## Live demo script (3 minutes)
+## Rehearse without sending anything
 
-1. Phone: send **Hi** to the test number. (Webhook on: you get the menu.)
-2. Dashboard → Reports → WhatsApp card. Number shows as `91••••••1234`.
-3. Press **Send Report on WhatsApp**. Badge goes Bhej rahe hain → Bhej diya, then Pahunch gaya → Padh liya once you open it.
-4. On the phone read the report. Reply **2** for stock, **3** for udhaar, **5** for the PDF link, or ask "aaj kitni sale hui?".
-5. Failure demo (optional): remove the token from env and press Send. The card shows the plain reason.
+`TWILIO_SEND_MODE=dry` makes the bot log replies instead of calling Twilio. Tests always use a fake channel.
 
 ## Errors you may see
 
-| Card says | Cause | Fix |
+| Message on card | Cause | Fix |
 |---|---|---|
-| WhatsApp set up nahi hai | token or phone number ID missing | step 5 |
-| Yeh number test list mein nahi hai (131030) | recipient not verified | step 3 |
-| Access token expire ho gaya (190) | temporary token ran out | System User token, step 4 |
-| 24 ghante se zyada ho gaye (131047) | window closed | send Hi from phone, press Send again |
-| Number sahi nahi lag raha | bad number typed | 10-digit mobile or full number with country code |
-| Bahut zyada messages gaye (rate) | Meta rate limit | wait a few minutes |
+| WhatsApp abhi set up nahi hai | Twilio vars missing | step 2 |
+| Yeh number sandbox se jud nahi hai (63015) | not joined, or 3-day join expired | send the join phrase again |
+| 24 ghante se zyada ho gaye (63016) | window closed | owner sends `Hi`, then Send again |
+| Roz ki message limit poori (63038) | trial cap | wait for the rolling 24 h |
+| Twilio Auth Token galat hai | wrong or rotated token | update env and redeploy |
+| Twilio trial account custom message nahi bhej sakta (21654) | trial accounts allow only Twilio templates | upgrade the Twilio account |
 
 ## Env vars
 
 | Var | Needed for |
 |---|---|
-| `WHATSAPP_ACCESS_TOKEN` | sending |
-| `WHATSAPP_PHONE_NUMBER_ID` | sending |
-| `WHATSAPP_VERIFY_TOKEN` | webhook handshake |
-| `WHATSAPP_APP_SECRET` | webhook signature check |
-| `WHATSAPP_API_VERSION` | optional, default `v27.0` |
-| `APP_BASE_URL` | PDF links in the bot |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM` | everything (all three) |
+| `APP_BASE_URL` | signature check, PDF and pay links, delivery status callback (must be public https) |
+| `TWILIO_SANDBOX_JOIN_CODE` | optional, default `join twilio-trial` |
+| `TWILIO_SEND_MODE=dry` | optional rehearsal |
+| `TWILIO_DAILY_CAP` | optional, default 40 |
+| `TWILIO_WEBHOOK_BASE` | optional, when Twilio calls a different host than `APP_BASE_URL` |
+| `SARVAM_API_KEY` | voice notes |
+| `ANTHROPIC_API_KEY` | photos and free-text questions |
 
-Tokens are read only on the server. The browser never sees them, and they are never logged.
+Secrets are read only on the server and never logged.
 
-## Beyond the free test number
+## Meta Cloud API (fallback)
 
-Messaging real customers or anyone outside the 5-number list needs a real WhatsApp Business number, business verification and approved templates (for example a daily-report template so it can message outside the 24-hour window). The code path is the same: only the Phone Number ID and token change, and a template send would replace the `hello_world` fallback in `src/lib/wa/send.ts`.
+Used only when the Twilio vars are empty. Needs `WHATSAPP_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID`, and for the inbound bot also `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` and the webhook `<APP_BASE_URL>/api/whatsapp/webhook` (subscribe to `messages`).
+The Meta path supports text only (no PDF files). On this project Meta outbound is currently blocked (error 131031, business verification in review), which is why Twilio is the live channel.
+
+## Beyond the sandbox
+
+For real customers or an always-on number you need a Twilio WhatsApp sender with a registered business profile and approved templates. Code stays the same; only the sender number changes, and a template send would replace the "owner must write first" rule for proactive alerts.

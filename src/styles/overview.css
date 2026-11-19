@@ -122,3 +122,5 @@
 .wa-kind { font-weight: 600; }
 .wa-why { flex-basis: 100%; color: var(--color-error); }
 @media (max-width: 40rem) { .wa-row .btn { margin-top: 0; } }
+.wa-join { display: grid; gap: var(--space-sm); justify-items: start; padding: var(--space-sm) 0; border-top: 1px solid var(--color-rule); }
+.wa-steps { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--space-2xs); font-size: var(--text-sm); }
