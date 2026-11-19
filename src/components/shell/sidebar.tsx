@@ -70,9 +70,9 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
       </nav>
       <div className="side-foot">
         <Link href="/soundbox" prefetch={false} className="nav-link" onClick={onNavigate}>
-          <span className="nav-label">Soundbox</span>
+          <span className="nav-label">Payment screen</span>
           <span className="nav-hi deva" lang="hi">
-            साउंडबॉक्स
+            रोज़मेल
           </span>
         </Link>
       </div>

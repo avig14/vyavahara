@@ -120,9 +120,14 @@ export function SoundboxView() {
             व्यवहार
           </span>
         </span>
-        <Link href="/dashboard" className="sb-link">
-          Open dashboard
-        </Link>
+        <span className="sb-links">
+          <Link href="/dashboard/soundbox" className="sb-talk">
+            Soundbox se baat karein
+          </Link>
+          <Link href="/dashboard" className="sb-link">
+            Open dashboard
+          </Link>
+        </span>
       </header>
       <main className="sb-main">
         <h1 className="visually-hidden">Soundbox counter</h1>
