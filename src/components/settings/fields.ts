@@ -124,6 +124,7 @@ export const FIELDS: readonly FieldDef[] = [
 
   // ---- bills and payments
   { path: "ingest.billTolerancePct", group: "ingest", label: "Supplier bill tolerance", kind: "decimal", decimals: 1, unit: "%", description: "A bill is flagged when its lines add up to more than this far from the printed total." },
+  { path: "ingest.billMinMatchPct", group: "ingest", label: "Bill lines that must match", kind: "decimal", decimals: 0, unit: "%", description: "A scanned bill is called a poor read when fewer than this share of its lines match your items. You still decide whether to accept." },
   { path: "ingest.matchMaxScore", group: "ingest", label: "Item name matching", kind: "decimal", decimals: 2, unit: "score", description: "Lower is stricter when matching a name on a bill to your items." },
   { path: "ingest.basketTolerancePct", group: "ingest", label: "Soundbox basket tolerance", kind: "decimal", decimals: 1, unit: "%", description: "A payment matches a heard basket when the item prices add up to within this much of the amount." },
   { path: "ingest.basketHoldMinutes", group: "ingest", label: "Basket waits for its payment", kind: "int", unit: "minutes", description: "How long a heard basket waits for its payment." },

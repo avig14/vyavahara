@@ -143,6 +143,8 @@ export const settingsSchema = z.object({
     .object({
       /** supplier bill: flag when sum of lines differs from printed total by more than this percent */
       billTolerancePct: num(0, 20, 2),
+      /** supplier bill: below this share of lines matched to your items, the bill is called a poor read (owner can still accept) */
+      billMinMatchPct: num(0, 100, 70),
       /** fuzzy item match: lower = stricter (Fuse score ceiling) */
       matchMaxScore: num(0.05, 0.8, 0.35),
       /** soundbox: payment matches a basket when item prices sum within this percent of the amount */

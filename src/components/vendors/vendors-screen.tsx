@@ -6,6 +6,7 @@ import { rupees } from "@/lib/format";
 import { useApi } from "@/lib/ui/api";
 import { useQueryString } from "@/lib/ui/url-state";
 import { buildSuppliers } from "./model";
+import { BillScan } from "./bill-scan";
 import { PriceChanges } from "./price-changes";
 import { PurchaseOrders } from "./purchase-orders";
 import { SupplierTable } from "./supplier-table";
@@ -30,6 +31,7 @@ export function VendorsScreen() {
         title="Suppliers"
         hindi="सप्लायर"
         description={rows ? (owed > 0 ? `Kul ${rupees(owed)} baaki hai. Jiska bill pehle due hai woh upar.` : "Kisi supplier ka kuch baaki nahi.") : "Kisko kitna dena hai, aur kiska rate badla."}
+        actions={<BillScan vendors={rows?.map((r) => ({ id: r.vendor.id, name: r.vendor.name }))} onDone={refetch} />}
       />
       <SupplierTable rows={rows} loading={loading} error={failed} onRetry={refetch} selected={vendor || null} onSelect={(id) => {
           setPicked(true);

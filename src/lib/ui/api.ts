@@ -62,6 +62,8 @@ function send<T>(method: string, url: string, body?: unknown): Promise<T> {
 
 export const getJson = <T>(url: string) => request<T>(url);
 export const postJson = <T>(url: string, body?: unknown) => send<T>("POST", url, body);
+/** multipart upload: no content-type header, the browser adds the boundary */
+export const postForm = <T>(url: string, form: FormData) => request<T>(url, { method: "POST", body: form });
 export const putJson = <T>(url: string, body?: unknown) => send<T>("PUT", url, body);
 export const deleteJson = <T>(url: string) => send<T>("DELETE", url);
 

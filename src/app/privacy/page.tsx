@@ -66,7 +66,7 @@ export default function PrivacyPage() {
         <section className="pv-sec" aria-labelledby="pv-not">
           <h2 id="pv-not">We do not collect plain UPI ids or audio.</h2>
           <div className="pv-body">
-            <p>Also not collected: photos, bills, passwords and ad trackers. Your browser keeps only the shop and owner name until the tab closes.</p>
+            <p>A supplier bill photo is read once to fill in your stock, then dropped. We keep only the items and amounts you accept, never the photo. Also not collected: passwords and ad trackers. Your browser keeps only the shop and owner name until the tab closes.</p>
           </div>
         </section>
 
