@@ -31,6 +31,9 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     return await fn();
   } catch (e) {
     if (e instanceof HttpError) return json({ error: e.message }, e.status);
+    // Neon free plan out of compute: say so plainly instead of a generic 500
+    if (/exceeded the quota/i.test(`${(e as { cause?: unknown })?.cause ?? ""} ${e instanceof Error ? e.message : ""}`))
+      return json({ error: "Database limit khatam ho gaya (Neon free plan quota). Database plan badhaiye ya naya database lagaiye." }, 503);
     console.error("[api]", e);
     return json({ error: "Something went wrong" }, 500);
   }

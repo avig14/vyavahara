@@ -32,3 +32,25 @@ export function dbStore(db: Db, merchantId: string, actor: Actor = "ai"): AgentS
     createPending: async (kind, payload) => (await q.createPendingAction(db, merchantId, kind, payload)).id,
   };
 }
+
+/**
+ * Public demo (Soundbox on the landing page with SOUNDBOX_LANDING_READONLY=true): every direct write fails with a
+ * message the agent can say. Confirmations can still be proposed; the voice route cancels them instead of applying.
+ */
+export function readOnlyStore(inner: AgentStore): AgentStore {
+  const no = async () => {
+    throw new Error("Demo mode: yahan se badlav save nahi hota. Dashboard ya WhatsApp se kijiye.");
+  };
+  return {
+    addKhataEntry: no,
+    addExpense: no,
+    addCashSale: no,
+    adjustStock: no,
+    setCreditBlocked: no,
+    setCreditLimit: no,
+    createPurchaseOrder: no,
+    payVendorBill: no,
+    receiveBill: no,
+    createPending: (kind, payload) => inner.createPending(kind, payload),
+  };
+}

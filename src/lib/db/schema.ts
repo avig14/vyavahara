@@ -319,7 +319,7 @@ export const conversations = pgTable(
   {
     id: id(),
     merchantId: text("merchant_id").notNull(),
-    channel: text("channel", { enum: ["wa", "web"] }).notNull(),
+    channel: text("channel", { enum: ["wa", "web", "voice"] }).notNull(),
     role: text("role", { enum: ["user", "assistant"] }).notNull(),
     content: text("content").notNull(),
     createdAt: createdAt(),
