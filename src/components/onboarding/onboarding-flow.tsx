@@ -182,8 +182,8 @@ export function OnboardingFlow() {
               <Badge tone="warn">Not connected yet</Badge>
             </div>
             <div className="ob-text">
-              <p>WhatsApp pairing is not live in this build. There is no QR code to scan and no number to message.</p>
-              <p>Saathi works in the chat panel on your dashboard instead.</p>
+              <p>Reports reach WhatsApp through Meta&apos;s official Cloud API. There is no QR code to scan.</p>
+              <p>Add your number and send a report from the Reports page. Setup steps are in docs/WHATSAPP-SETUP.md.</p>
             </div>
             <div className="ob-actions">
               <Button variant="primary" onClick={() => setStep("4")}>

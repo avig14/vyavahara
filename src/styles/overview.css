@@ -107,3 +107,18 @@
   .rp-doc .tbl[data-restack] tfoot td:first-child { display: block; padding-bottom: var(--space-2xs); text-align: left; }
   .rp-doc .tbl[data-restack] tfoot td:first-child::before { content: none; }
 }
+
+/* ---- WhatsApp card on Reports: send, number, delivery status ---- */
+.wa-card { display: grid; gap: var(--space-sm); max-width: 60rem; padding: var(--space-md); border: 1px solid var(--color-rule-strong); border-radius: var(--radius-control); background: var(--color-paper-3); margin-bottom: var(--space-lg); }
+.wa-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); }
+.wa-head h2 { font-size: var(--text-lg); font-weight: 700; }
+.wa-row { display: flex; flex-wrap: wrap; align-items: start; gap: var(--space-xs); }
+.wa-row .field { flex: 1 1 14rem; max-width: 22rem; }
+.wa-row .btn { margin-top: calc(var(--text-sm) * 1.6); }
+.wa-note { margin: 0; color: var(--color-muted); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.wa-bad { color: var(--color-error); }
+.wa-log { display: grid; gap: var(--space-2xs); margin: 0; padding: 0; list-style: none; }
+.wa-log li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs) var(--space-sm); padding: var(--space-2xs) 0; border-top: 1px solid var(--color-rule); font-size: var(--text-sm); }
+.wa-kind { font-weight: 600; }
+.wa-why { flex-basis: 100%; color: var(--color-error); }
+@media (max-width: 40rem) { .wa-row .btn { margin-top: 0; } }

@@ -13,6 +13,7 @@ import { postJson, useApi } from "@/lib/ui/api";
 import { istStamp } from "@/lib/ui/dates";
 import { PERIOD_OPTIONS, usePeriod } from "@/lib/ui/period";
 import type { PeriodName } from "@/lib/time";
+import { WhatsAppCard } from "./whatsapp-card";
 import { KhataPayablesSection, LostSection, ProfitSection, SalesSection, TopSection } from "./report-sections";
 
 const OPTIONS = PERIOD_OPTIONS.map((p) => ({ value: p.name, label: p.label }));
@@ -85,6 +86,7 @@ export function ReportsScreen() {
           </>
         }
       />
+      <WhatsAppCard />
       <Region state={state} errorTitle="Report nahi khul payi" skeleton={<Skeleton shape="rows" count={9} cols={3} label="Report load ho rahi hai" />}>
         {(d) => <Preview data={d} />}
       </Region>

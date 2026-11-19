@@ -281,6 +281,27 @@ export const waSessions = pgTable("wa_sessions", {
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
+/** Every WhatsApp message in or out: powers the dashboard's delivery status and de-duplicates Meta's webhook retries. */
+export const waMessages = pgTable(
+  "wa_messages",
+  {
+    id: id(),
+    merchantId: text("merchant_id").notNull(),
+    /** Meta's message id (wamid). Null only while an outbound message is still being sent. */
+    wamid: text("wamid").unique(),
+    direction: text("direction", { enum: ["out", "in"] }).notNull(),
+    kind: text("kind", { enum: ["report", "template", "reply", "menu", "inbound"] }).notNull(),
+    /** first line only, never the whole report */
+    preview: text("preview").notNull().default(""),
+    status: text("status", { enum: ["sending", "sent", "delivered", "read", "failed", "received"] }).notNull(),
+    errorCode: integer("error_code"),
+    errorText: text("error_text"),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("wa_msg_merchant_created_idx").on(t.merchantId, t.createdAt)],
+);
+
 export const pendingActions = pgTable("pending_actions", {
   id: id(),
   merchantId: text("merchant_id").notNull(),

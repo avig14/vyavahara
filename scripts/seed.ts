@@ -4,6 +4,7 @@ config();
 import { getDb } from "../src/lib/db/client";
 import { generateSnapshot } from "../src/lib/seed/generate";
 import { writeSnapshot } from "../src/lib/seed/write";
+import { normalizePhone } from "../src/lib/wa/cloud";
 
 async function main() {
   if (!process.env.DATABASE_URL) {
@@ -11,7 +12,7 @@ async function main() {
     process.exit(1);
   }
   const snap = generateSnapshot({
-    ownerPhoneWa: process.env.OWNER_WA ?? null,
+    ownerPhoneWa: normalizePhone(process.env.OWNER_WA),
     upiId: process.env.MERCHANT_UPI_ID ?? "guptastore@paytm",
   });
   console.log("Seeding 120 days ending", snap.now.toISOString(), "…");

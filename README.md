@@ -51,8 +51,15 @@ Tests use fakes: no database, Claude or Sarvam call is made.
 | `POST /api/soundbox/payment` | `{amountPaise, speak?}`; matches the held basket |
 | `POST /api/reports/pdf` · `GET /api/reports/pdf/[token]` | mint a 7-day link · download the PDF |
 | `POST /api/pay` · `GET/POST /api/pay/[token]` | khata pay link · page data · demo "mark paid" |
+| `POST /api/whatsapp/send-report` | send today's analysis to the saved owner number (Meta Cloud API) |
+| `GET /api/whatsapp/status` | configured?, masked number, 24h window, last sends with status |
+| `POST /api/onboarding/whatsapp` | `{phone}` save the owner number |
+| `GET/POST /api/whatsapp/webhook` | Meta handshake · delivery statuses + inbound menu bot (signature checked) |
 
-Not built yet: UI pages and the WhatsApp bot (webhook, menus, alerts).
+## WhatsApp
+
+Official Meta Cloud API, free test number, no Twilio. Setup, env vars, live demo script and the 24-hour rule: [docs/WHATSAPP-SETUP.md](docs/WHATSAPP-SETUP.md).
+Unit-tested with mocked Meta responses; not yet run against live Meta (needs your credentials).
 
 ## Credit discipline
 

@@ -412,3 +412,68 @@ export async function recordSoundboxSale(
   await db.batch(q as unknown as Parameters<Db["batch"]>[0]);
   return { transactionId: txnId };
 }
+
+
+/* ---------------- WhatsApp ---------------- */
+
+export type WaStatus = "sending" | "sent" | "delivered" | "read" | "failed" | "received";
+/** Meta can deliver statuses out of order or twice: a status only moves forward. `failed` always wins. */
+const WA_RANK: Record<WaStatus, number> = { sending: 0, sent: 1, delivered: 2, read: 3, received: 3, failed: 9 };
+
+export async function getWaState(db: Db, merchantId: string) {
+  const [row] = await db
+    .select({ ownerName: s.merchants.ownerName, phone: s.merchants.ownerPhoneWa, connectedAt: s.merchants.waConnectedAt, lastInboundAt: s.merchants.waLastInboundAt })
+    .from(s.merchants)
+    .where(eq(s.merchants.id, merchantId));
+  if (!row) throw new Error("merchant not found");
+  return row;
+}
+
+/** Saves the owner's WhatsApp number (digits with country code). A new number starts unconnected. */
+export async function setOwnerPhone(db: Db, merchantId: string, digits: string) {
+  await db.update(s.merchants).set({ ownerPhoneWa: digits, waConnectedAt: null, waLastInboundAt: null }).where(eq(s.merchants.id, merchantId));
+}
+
+/** The owner wrote to us: the 24-hour reply window is open from `now`, and the number counts as connected. */
+export async function touchInbound(db: Db, merchantId: string, now: Date) {
+  await db
+    .update(s.merchants)
+    .set({ waLastInboundAt: now, waConnectedAt: sql`coalesce(${s.merchants.waConnectedAt}, ${now.toISOString()}::timestamptz)` })
+    .where(eq(s.merchants.id, merchantId));
+}
+
+export async function startWaMessage(db: Db, merchantId: string, kind: "report" | "template" | "reply" | "menu", preview: string): Promise<string> {
+  const [row] = await db.insert(s.waMessages).values({ merchantId, direction: "out", kind, preview: preview.slice(0, 120), status: "sending" }).returning({ id: s.waMessages.id });
+  return row.id;
+}
+
+export async function markWaSent(db: Db, id: string, wamid: string) {
+  await db.update(s.waMessages).set({ wamid, status: "sent", updatedAt: new Date() }).where(eq(s.waMessages.id, id));
+}
+
+export async function markWaFailed(db: Db, id: string, code: number | null, text: string) {
+  await db.update(s.waMessages).set({ status: "failed", errorCode: code, errorText: text.slice(0, 300), updatedAt: new Date() }).where(eq(s.waMessages.id, id));
+}
+
+/** Records an inbound message once. false = Meta already sent us this one (a retry): do not answer twice. */
+export async function claimInbound(db: Db, merchantId: string, wamid: string, preview: string): Promise<boolean> {
+  const rows = await db
+    .insert(s.waMessages)
+    .values({ merchantId, wamid, direction: "in", kind: "inbound", preview: preview.slice(0, 120), status: "received" })
+    .onConflictDoNothing({ target: s.waMessages.wamid })
+    .returning({ id: s.waMessages.id });
+  return rows.length > 0;
+}
+
+export async function applyWaStatus(db: Db, wamid: string, status: Exclude<WaStatus, "sending" | "received">, code: number | null, detail: string | null) {
+  const [row] = await db.select({ id: s.waMessages.id, status: s.waMessages.status }).from(s.waMessages).where(eq(s.waMessages.wamid, wamid));
+  if (!row || WA_RANK[status] <= WA_RANK[row.status as WaStatus]) return;
+  await db
+    .update(s.waMessages)
+    .set({ status, errorCode: status === "failed" ? code : null, errorText: status === "failed" ? (detail ?? "").slice(0, 300) : null, updatedAt: new Date() })
+    .where(eq(s.waMessages.id, row.id));
+}
+
+export async function listWaMessages(db: Db, merchantId: string, limit = 8) {
+  return db.select().from(s.waMessages).where(and(eq(s.waMessages.merchantId, merchantId), eq(s.waMessages.direction, "out"))).orderBy(desc(s.waMessages.createdAt)).limit(limit);
+}
