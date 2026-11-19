@@ -1,0 +1,102 @@
+@theme static {
+  /* type scale: app scale, ratio 1.2, no fluid heads */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.2rem;
+  --text-xl: 1.44rem;
+  --text-2xl: 1.728rem;
+  --text-3xl: 2.074rem;
+  --text-figure: 2.488rem;
+  --text-display-s: 1.44rem;
+  --text-display: 1.728rem;
+  --text-section: 1.2rem;
+  --text-title: 1rem;
+  --text-lead: 1rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ground and ink: a cool paper, navy-leaning ink (brand spec: #f7f9fc, #002970, #101010) */
+  --color-paper: oklch(98.1% 0.005 258);
+  --color-paper-2: oklch(99.6% 0.005 240);
+  --color-paper-3: oklch(95.7% 0.025 223);
+  --color-ink: oklch(22% 0.05 261);
+  --color-ink-2: oklch(30.9% 0.13 261);
+  --color-muted: oklch(46% 0.03 255);
+  --color-rule: oklch(90.5% 0.012 250);
+  --color-rule-strong: oklch(80% 0.02 250);
+
+  /* brand: cyan is a fill, never text on paper (2.3:1); navy sits on it (5.6:1) */
+  --color-accent: oklch(73.7% 0.145 229);
+  --color-accent-ink: oklch(30.9% 0.13 261);
+  --color-accent-soft: oklch(95.7% 0.025 223);
+  --color-accent-line: oklch(86% 0.08 226);
+  --color-navy: oklch(30.9% 0.13 261);
+  --color-navy-2: oklch(25% 0.1 261);
+  --color-on-navy: oklch(98.5% 0.004 250);
+  --color-on-navy-muted: oklch(80% 0.04 250);
+  --color-focus: oklch(30.9% 0.13 261);
+
+  /* money states: in, due, caution */
+  --color-error: oklch(52% 0.19 27);
+  --color-error-soft: oklch(96% 0.025 25);
+  --color-success: oklch(48% 0.12 150);
+  --color-success-soft: oklch(96% 0.03 150);
+  --color-warn: oklch(52% 0.12 70);
+  --color-warn-soft: oklch(96.5% 0.04 85);
+
+  /* chart series: navy, cyan, then neutrals; nothing else */
+  --color-series-1: oklch(30.9% 0.13 261);
+  --color-series-2: oklch(73.7% 0.145 229);
+  --color-series-3: oklch(62% 0.03 255);
+  --color-series-4: oklch(84% 0.015 250);
+
+  /* one family, Figtree, with Noto Sans Devanagari behind it for व्यवहार */
+  --font-display: var(--font-figtree), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-figtree), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: var(--font-body);
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-pill: 999px;
+  --shadow-card: none;
+  --tracking-display: -0.015em;
+}
+:root {
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 144px;
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --container: 1440px;
+  --gutter: 64px;
+  --gap-columns: 32px;
+  --section-gap-s: 120px;
+  --section-gap: 144px;
+  --section-gap-l: 176px;
+  --control-h: 36px;
+  --topbar-h: 56px;
+  --sidebar-w: 232px;
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+  --rule-hair: 1px;
+}
+@media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; --control-h: 44px; } }
+@media (pointer: coarse) { :root { --control-h: 44px; } }

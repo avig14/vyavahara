@@ -1,0 +1,23 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand (Paytm, spec 2026-11-19)
+ * paper: oklch(98.1% 0.005 258) · accent: oklch(73.7% 0.145 229) · display: Figtree · body: Figtree
+ * nav: navy sidebar with Hindi sublabels, light top bar · signature: the rozmel, a running day-book of today's UPI receipts · states: loading, empty, error, full
+ * axes: light/geometric-sans/chromatic-cyan · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, no earlier run in this project; kept cyan to fills only and let the ledger rules carry structure instead of cards */
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/base.css" layer(base);
+@import "../styles/ui.css" layer(components);
+@import "../styles/shell.css" layer(components);
+@import "../styles/landing.css" layer(components);
+@import "../styles/onboarding.css" layer(components);
+@import "../styles/overview.css" layer(components);
+@import "../styles/growth.css" layer(components);
+@import "../styles/khata.css" layer(components);
+@import "../styles/inventory.css" layer(components);
+@import "../styles/settings.css" layer(components);
+
+/* app-wide */
+body { font-feature-settings: "tnum" 0; min-height: 100dvh; }
+.figure, .num, td.num, th.num { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1; }
+.deva { font-family: var(--font-deva), var(--font-body); }
+
