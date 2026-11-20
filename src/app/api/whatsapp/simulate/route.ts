@@ -1,5 +1,6 @@
 import { getCtx, handle, HttpError, json, readJson } from "@/lib/server/http";
-import { answerFor } from "@/lib/wa/router";
+import { answerFor, resolveIntent } from "@/lib/wa/router";
+import { imagesFor } from "@/lib/wa/media";
 import { splitMessage } from "@/lib/wa/cloud";
 import { interactiveFor } from "@/lib/wa/interactive";
 
@@ -18,5 +19,5 @@ export const POST = (req: Request) =>
     if (!text) throw new HttpError(400, "Message khali hai");
     const reply = await answerFor(c.db, c.merchantId, text, null, c.now, { preview: true });
     // long answers arrive as several messages on WhatsApp, so show them the same way
-    return json({ parts: splitMessage(reply), interactive: interactiveFor(text) });
+    return json({ parts: splitMessage(reply), interactive: interactiveFor(text), images: imagesFor(resolveIntent(text, null)) });
   });

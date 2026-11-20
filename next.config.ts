@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   // react-pdf loads TTF files at runtime; make sure Vercel ships them with the PDF routes.
   outputFileTracingIncludes: {
     "/api/reports/pdf/[token]": ["./assets/fonts/**/*"],
+    "/api/wa/card/[kind]": ["./assets/fonts/**/*", "./public/wa/**/*"],
   },
   turbopack: {
     rules: {

@@ -5,12 +5,15 @@ import { PageHeader } from "@/components/ui";
 import { postJson, toApiError } from "@/lib/ui/api";
 import { formatWa, tokenizeWa, type WaToken } from "@/lib/wa/format-wa";
 import { textForTap, type Interactive } from "@/lib/wa/interactive";
+import type { WaImage } from "@/lib/wa/media";
 
 interface Msg {
   id: number;
   from: "me" | "bot";
   text: string;
   at: Date;
+  /** a photo sent with this message (the text is its caption) */
+  image?: WaImage;
   /** tappable options under a bot message */
   interactive?: Interactive;
   /** the bot has answered this message (blue ticks) */
@@ -67,11 +70,17 @@ function Text({ text }: { text: string }) {
   );
 }
 
-function Bubble({ m, live, onTap, onOpenList }: { m: Msg; live: boolean; onTap: (id: string, title: string) => void; onOpenList: () => void }) {
+function Bubble({ m, live, onTap, onOpenList, onMedia }: { m: Msg; live: boolean; onTap: (id: string, title: string) => void; onOpenList: () => void; onMedia: () => void }) {
   const i = m.interactive;
   return (
     <div className={`wsim-msg wsim-${m.from}`}>
-      <div className="wsim-bubble">
+      <div className={m.image ? "wsim-bubble wsim-has-photo" : "wsim-bubble"}>
+        {m.image ? (
+          <a className="wsim-photo" href={m.image.src} target="_blank" rel="noreferrer noopener">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={m.image.src} alt={m.image.alt} onLoad={onMedia} />
+          </a>
+        ) : null}
         <Text text={m.text} />
         <span className="wsim-time">
           {clock(m.at)}
@@ -125,8 +134,23 @@ export function WhatsappPreview() {
     setMsgs((m) => [...m, { id: mine, from: "me", text: shown ?? t, at: new Date() }]);
     setBusy(true);
     try {
-      const r = await postJson<{ parts: string[]; interactive: Interactive }>("/api/whatsapp/simulate", { text: t });
+      type Reply = { parts: string[]; interactive: Interactive; images?: WaImage[] };
+      const ask = () => postJson<Reply>("/api/whatsapp/simulate", { text: t });
+      let r: Reply;
+      try {
+        r = await ask();
+      } catch (first) {
+        // the preview only reads data, so repeating it is safe; a network or server blip should not reach the audience
+        const err = toApiError(first);
+        if (err.status !== 0 && err.status < 500) throw first;
+        await new Promise((res) => setTimeout(res, 800));
+        r = await ask();
+      }
       setMsgs((m) => m.map((x) => (x.id === mine ? { ...x, answered: true } : x)));
+      for (const img of r.images ?? []) {
+        await new Promise((res) => setTimeout(res, 350));
+        setMsgs((m) => [...m, { id: next.current++, from: "bot", text: img.caption ?? "", at: new Date(), image: img }]);
+      }
       for (let k = 0; k < r.parts.length; k++) {
         await new Promise((res) => setTimeout(res, 350));
         const last = k === r.parts.length - 1;
@@ -174,7 +198,8 @@ export function WhatsappPreview() {
         <div className="wsim-phone" role="region" aria-label="WhatsApp chat preview">
           <header className="wsim-head">
             <span className="wsim-back" aria-hidden="true">‹</span>
-            <span className="wsim-avatar" aria-hidden="true">V</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="wsim-avatar" src="/wa/logo.png" alt="" />
             <div className="wsim-who">
               <b>
                 Vyavahāra <Verified />
@@ -186,7 +211,7 @@ export function WhatsappPreview() {
             <p className="wsim-chip">Aaj</p>
             <p className="wsim-lock">Yeh ek preview hai. Kuch bhi WhatsApp ko nahi bheja jaata.</p>
             {msgs.map((m) => (
-              <Bubble key={m.id} m={m} live={m === lastBot && !busy} onTap={(id, title) => void send(textForTap(id), title)} onOpenList={() => setSheet(true)} />
+              <Bubble key={m.id} m={m} live={m === lastBot && !busy} onTap={(id, title) => void send(textForTap(id), title)} onOpenList={() => setSheet(true)} onMedia={() => end.current?.scrollIntoView({ block: "end" })} />
             ))}
             {busy ? (
               <div className="wsim-msg wsim-bot">

@@ -46,6 +46,8 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: Boolean(ok),
 
 const idleOld = () => ev(`(async()=>{ for(let i=0;i<200;i++){ if(!document.querySelector('.wsim-typing') && document.querySelector('.wsim-bubble')) { await new Promise(r=>setTimeout(r,500)); if(!document.querySelector('.wsim-typing')) return true; } await new Promise(r=>setTimeout(r,100)); } return false; })()`);
 const idle = (minBots = null) => ev(`(async()=>{ const target=${minBots===null?'null':minBots}; for(let i=0;i<300;i++){ const n=document.querySelectorAll('.wsim-bot .wsim-bubble:not(.wsim-typing)').length; const typing=!!document.querySelector('.wsim-typing'); if((target===null? n>=1 : n>=target) && !typing){ await new Promise(r=>setTimeout(r,700)); const n2=document.querySelectorAll('.wsim-bot .wsim-bubble:not(.wsim-typing)').length; if(!document.querySelector('.wsim-typing') && n2===n) return true; } await new Promise(r=>setTimeout(r,100)); } return false; })()`);
+const photoCount = () => ev(`document.querySelectorAll('.wsim-photo img').length`);
+const photoOk = (min) => ev(`(async()=>{ for(let i=0;i<80;i++){ const im=[...document.querySelectorAll('.wsim-photo img')]; if(im.length>=${min} && im.every(x=>x.complete && x.naturalWidth>0)) return true; await new Promise(r=>setTimeout(r,150)); } return false; })()`);
 const botCount = () => ev(`document.querySelectorAll('.wsim-bot .wsim-bubble:not(.wsim-typing)').length`);
 const meCount = () => ev(`document.querySelectorAll('.wsim-me').length`);
 const lastBotText = () => ev(`(()=>{const b=[...document.querySelectorAll('.wsim-bot .wsim-bubble:not(.wsim-typing)')]; return b.length? b[b.length-1].innerText : ''; })()`);
@@ -56,6 +58,7 @@ async function run(width, height, label) {
   await cmd("Page.navigate", { url: URL_ });
   await sleep(1500);
   check(`[${label}] opens and the bot greets by itself`, await idle() && (await botCount()) >= 1);
+  check(`[${label}] greeting comes with the welcome photo`, await photoOk(1), "images " + (await photoCount()));
   check(`[${label}] greeting has the Menu button`, await ev(`!![...document.querySelectorAll('.wsim-actions button')].find(b=>b.textContent.includes('Menu dekhein'))`));
   const overflow = await ev(`document.scrollingElement.scrollWidth - window.innerWidth`);
   check(`[${label}] no horizontal scroll`, overflow <= 0, "overflow " + overflow + "px");
@@ -83,6 +86,7 @@ for (const title of rowTitles) {
     await idle((await botCount()) + 1);
   }
   const bots = await botCount();
+  const photosBefore = await photoCount();
   await clickText("Menu dekhein");
   await sleep(250);
   const clicked = await clickText(title, ".wsim-sheet-body");
@@ -91,6 +95,13 @@ for (const title of rowTitles) {
   const nb = (await botCount()) - bots;
   const bad = /undefined|\[object|NaN|null/.test(text) || /\*/.test(text);
   check(`menu row "${title}" answers`, clicked && done && nb >= 1 && text.length > 15 && !bad, `${nb} bubble(s), ${text.length} chars${bad ? " BAD TEXT: " + text.slice(0, 80) : ""}`);
+  const wantsPhoto = ["Aaj ka poora report", "Udhaar (khata)", "Stock"].includes(title);
+  const photosAfter = await photoCount();
+  if (wantsPhoto) {
+    check(`  "${title}" comes with exactly one new photo card that loads`, photosAfter - photosBefore === 1 && (await ev(`(async()=>{ for(let i=0;i<80;i++){ const im=[...document.querySelectorAll('.wsim-photo img')].pop(); if(im && im.complete && im.naturalWidth>=1000) return true; await new Promise(r=>setTimeout(r,150)); } return false; })()`)), `photos +${photosAfter - photosBefore}`);
+  } else {
+    check(`  "${title}" sends no photo`, photosAfter === photosBefore, `photos +${photosAfter - photosBefore}`);
+  }
   const btns = await ev(`document.querySelectorAll('.wsim-actions button:not(:disabled)').length`);
   check(`  buttons under "${title}" reply`, btns >= 1 && btns <= 3, btns + " buttons");
 }

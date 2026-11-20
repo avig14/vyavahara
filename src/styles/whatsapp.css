@@ -46,3 +46,8 @@
 .wsim-reset:disabled { opacity: 0.5; cursor: default; }
 .wsim button:focus-visible, .wsim input:focus-visible { outline: 3px solid #1d9bf0; outline-offset: 2px; }
 .wsim-actions button { min-block-size: 2.75rem; }
+.wsim-has-photo { padding: 0.25rem 0.25rem 1.3rem; inline-size: min(17.5rem, 80vw); }
+.wsim-has-photo > p { padding-inline: 0.35rem; }
+.wsim-photo { display: block; margin-block-end: 0.3rem; }
+.wsim-photo img { display: block; inline-size: 100%; block-size: auto; border-radius: 0.4rem; background: #e9edef; min-block-size: 8rem; object-fit: cover; }
+.wsim-avatar { object-fit: cover; border: 2px solid #fff; }

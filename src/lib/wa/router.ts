@@ -83,9 +83,15 @@ export function intentOf(raw: string | null, reply: string | null = null): Inten
  * `preview` is the on-screen WhatsApp preview: it must never change shop data. So a "1"/"2" never answers a waiting
  * confirmation (those digits are menu taps there), and the agent runs read-only.
  */
+/** The intent for a message: the menu digits and keywords, then (without an AI key) the typed questions we can answer from the reports. */
+export function resolveIntent(text: string | null, reply: string | null = null): Intent {
+  const intent = intentOf(text, reply);
+  if (intent === "agent" && text && !process.env.ANTHROPIC_API_KEY) return freeTextIntent(text) ?? intent;
+  return intent;
+}
+
 export async function answerFor(db: Db, merchantId: string, text: string | null, reply: string | null, now: Date, opts: { preview?: boolean } = {}): Promise<string> {
-  let intent = intentOf(text, reply);
-  if (intent === "agent" && text && !process.env.ANTHROPIC_API_KEY) intent = freeTextIntent(text) ?? intent;
+  const intent = resolveIntent(text, reply);
   // a waiting 1/2 confirmation wins over the menu digit, so "1" confirms instead of opening the report
   if (!opts.preview && text && (intent === "report" || intent === "stock")) {
     const c = await resolveChoice(db, merchantId, text, now);
