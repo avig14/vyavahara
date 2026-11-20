@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useL } from "@/lib/ui/lang";
 import { Button } from "./button";
 
 export interface ConfirmDialogProps {
@@ -18,7 +19,9 @@ export interface ConfirmDialogProps {
 }
 
 /** Native `<dialog>` opened with showModal(): focus trap, Escape and backdrop come from the platform. */
-export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel = "Cancel", tone = "default", loading, onConfirm, onCancel }: ConfirmDialogProps) {
+export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel, tone = "default", loading, onConfirm, onCancel }: ConfirmDialogProps) {
+  const l = useL();
+  cancelLabel ??= l("Cancel", "रद्द करें", "Cancel karo");
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {

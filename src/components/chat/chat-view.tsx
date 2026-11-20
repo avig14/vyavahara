@@ -1,10 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type RefObject } from "react";
-import { Button, EmptyState, ErrorState, Skeleton, Textarea } from "@/components/ui";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
+import { useL } from "@/lib/ui/lang";
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  Skeleton,
+  Textarea,
+} from "@/components/ui";
 import { SendIcon } from "@/components/ui/icons";
 import { postJson, toApiError, useApi } from "@/lib/ui/api";
-import { asksConfirmation, MessageText, stripConfirmPrompt } from "./message-text";
+import {
+  asksConfirmation,
+  MessageText,
+  stripConfirmPrompt,
+} from "./message-text";
 
 interface HistoryResponse {
   messages: { role: string; content: string }[];
@@ -26,9 +45,23 @@ interface Turn {
 /** A waiting confirmation expires on the server after 30 minutes. */
 const CONFIRM_WINDOW_MS = 30 * 60 * 1000;
 
-const EXAMPLES = ["Aaj ki bikri kitni hui?", "Kis customer ka udhaar sabse zyada hai?", "Kaunsa saaman kam bacha hai?"];
-
-const ATTACHMENT_LABEL: Record<string, string> = { report_pdf: "Open report (PDF)" };
+const EXAMPLES: [string, string, string][] = [
+  [
+    "How much did I sell today?",
+    "आज की बिक्री कितनी हुई?",
+    "Aaj ki bikri kitni hui?",
+  ],
+  [
+    "Which customer owes the most?",
+    "किस ग्राहक का उधार सबसे ज़्यादा है?",
+    "Kis customer ka udhaar sabse zyada hai?",
+  ],
+  [
+    "Which items are running low?",
+    "कौन सा सामान कम बचा है?",
+    "Kaunsa saaman kam bacha hai?",
+  ],
+];
 
 /** The panel is always mounted; this is true only while the surrounding dialog is open. */
 function useDialogOpen(ref: RefObject<HTMLElement | null>): boolean {
@@ -55,6 +88,7 @@ let seq = 0;
 const nextId = () => `t${++seq}`;
 
 export function ChatView() {
+  const l = useL();
   const root = useRef<HTMLDivElement>(null);
   const log = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -66,15 +100,32 @@ export function ChatView() {
   const [live, setLive] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const [failed, setFailed] = useState<{ text: string; message: string } | null>(null);
+  const [failed, setFailed] = useState<{
+    text: string;
+    message: string;
+  } | null>(null);
   const [now, setNow] = useState(clock);
 
   const past: Turn[] = (history.data?.messages ?? [])
-    .filter((m) => (m.role === "user" || m.role === "assistant") && m.content.trim() !== "")
-    .map((m, i) => ({ id: `h${i}`, role: m.role as "user" | "assistant", text: m.content, at: 0 }));
+    .filter(
+      (m) =>
+        (m.role === "user" || m.role === "assistant") &&
+        m.content.trim() !== "",
+    )
+    .map((m, i) => ({
+      id: `h${i}`,
+      role: m.role as "user" | "assistant",
+      text: m.content,
+      at: 0,
+    }));
   const turns = [...past, ...live];
   const last = turns[turns.length - 1];
-  const showConfirm = !sending && !failed && last?.role === "assistant" && last.asksConfirm === true && now - last.at < CONFIRM_WINDOW_MS;
+  const showConfirm =
+    !sending &&
+    !failed &&
+    last?.role === "assistant" &&
+    last.asksConfirm === true &&
+    now - last.at < CONFIRM_WINDOW_MS;
   const ready = Boolean(history.data) || Boolean(history.error);
 
   useEffect(() => {
@@ -89,14 +140,25 @@ export function ChatView() {
     setSending(true);
     const stamp = clock();
     setNow(stamp);
-    if (!retry) setLive((l) => [...l, { id: nextId(), role: "user", text: shown, at: stamp }]);
+    if (!retry)
+      setLive((l) => [
+        ...l,
+        { id: nextId(), role: "user", text: shown, at: stamp },
+      ]);
     try {
       const out = await postJson<ChatReply>("/api/chat", { text: t });
       const at = clock();
       setNow(at);
       setLive((l) => [
         ...l,
-        { id: nextId(), role: "assistant", text: stripConfirmPrompt(out.reply), attachments: out.attachments, asksConfirm: asksConfirmation(out.reply), at },
+        {
+          id: nextId(),
+          role: "assistant",
+          text: stripConfirmPrompt(out.reply),
+          attachments: out.attachments,
+          asksConfirm: asksConfirmation(out.reply),
+          at,
+        },
       ]);
     } catch (e) {
       setFailed({ text: t, message: toApiError(e).message });
@@ -125,25 +187,75 @@ export function ChatView() {
 
   return (
     <div className="sc" ref={root}>
-      <div className="sc-log" ref={log} role="log" aria-live="polite" aria-label="Conversation with Saathi">
+      <div
+        className="sc-log"
+        ref={log}
+        role="log"
+        aria-live="polite"
+        aria-label={l(
+          "Conversation with Saathi",
+          "साथी से बातचीत",
+          "Saathi se baatcheet",
+        )}
+      >
         {wasOpen && !ready ? (
           <div className="sc-wait">
-            <Skeleton shape="rows" count={3} cols={1} label="Loading earlier messages" />
+            <Skeleton
+              shape="rows"
+              count={3}
+              cols={1}
+              label={l(
+                "Loading earlier messages",
+                "पिछले संदेश लोड हो रहे हैं",
+                "Pichhle messages load ho rahe hain",
+              )}
+            />
           </div>
         ) : null}
         {history.error ? (
           <div className="sc-err">
-            <ErrorState title="Could not load earlier messages" error={history.error} onRetry={history.refetch} retrying={history.loading} />
+            <ErrorState
+              title={l(
+                "Could not load earlier messages",
+                "पिछले संदेश नहीं खुल पाए",
+                "Pichhle messages nahi khul paye",
+              )}
+              error={history.error}
+              onRetry={history.refetch}
+              retrying={history.loading}
+            />
           </div>
         ) : null}
         {empty ? (
           <div className="sc-empty">
-            <EmptyState title="Ask about your shop" description="Stock, khata, sales and bills. Hindi, English or Hinglish." />
-            <ul className="sc-ask" aria-label="Example questions">
-              {EXAMPLES.map((q) => (
-                <li key={q}>
-                  <button type="button" className="sc-ask-btn" onClick={() => void send(q)}>
-                    {q}
+            <EmptyState
+              title={l(
+                "Ask about your shop",
+                "अपनी दुकान के बारे में पूछें",
+                "Apni dukaan ke baare mein poochho",
+              )}
+              description={l(
+                "Stock, khata, sales and bills. Ask in Hindi, English or Hinglish.",
+                "स्टॉक, खाता, बिक्री और बिल। हिंदी, अंग्रेज़ी या हिंग्लिश में पूछें।",
+                "Stock, khata, sales aur bills. Hindi, English ya Hinglish mein poochho.",
+              )}
+            />
+            <ul
+              className="sc-ask"
+              aria-label={l(
+                "Example questions",
+                "उदाहरण के सवाल",
+                "Example sawaal",
+              )}
+            >
+              {EXAMPLES.map((e) => (
+                <li key={e[2]}>
+                  <button
+                    type="button"
+                    className="sc-ask-btn"
+                    onClick={() => void send(l(...e))}
+                  >
+                    {l(...e)}
                   </button>
                 </li>
               ))}
@@ -152,13 +264,27 @@ export function ChatView() {
         ) : null}
         {turns.map((t) => (
           <article key={t.id} className="sc-turn" data-role={t.role}>
-            <h3 className="sc-who">{t.role === "user" ? "You" : "Saathi"}</h3>
-            <MessageText text={t.role === "assistant" ? stripConfirmPrompt(t.text) : t.text} />
+            <h3 className="sc-who">
+              {t.role === "user"
+                ? l("You", "आप", "Aap")
+                : l("Saathi", "साथी", "Saathi")}
+            </h3>
+            <MessageText
+              text={
+                t.role === "assistant" ? stripConfirmPrompt(t.text) : t.text
+              }
+            />
             {t.attachments && t.attachments.length > 0 ? (
               <p className="sc-files">
                 {t.attachments.map((a) => (
                   <a key={a.url} href={a.url} target="_blank" rel="noreferrer">
-                    {ATTACHMENT_LABEL[a.kind] ?? "Open file"}
+                    {a.kind === "report_pdf"
+                      ? l(
+                          "Open report (PDF)",
+                          "रिपोर्ट खोलें (PDF)",
+                          "Report kholo (PDF)",
+                        )
+                      : l("Open file", "फ़ाइल खोलें", "File kholo")}
                   </a>
                 ))}
               </p>
@@ -166,27 +292,78 @@ export function ChatView() {
           </article>
         ))}
         {showConfirm ? (
-          <div className="sc-confirm" role="group" aria-label="Confirm this action">
-            <p className="sc-confirm-q">Saathi is waiting for your answer.</p>
+          <div
+            className="sc-confirm"
+            role="group"
+            aria-label={l(
+              "Confirm this action",
+              "इस काम की पुष्टि करें",
+              "Is kaam ki pushti karo",
+            )}
+          >
+            <p className="sc-confirm-q">
+              {l(
+                "Saathi is waiting for your answer.",
+                "साथी आपके जवाब का इंतज़ार कर रहा है।",
+                "Saathi aapke jawab ka intezaar kar raha hai.",
+              )}
+            </p>
             <div className="sc-confirm-act">
-              <Button variant="primary" onClick={() => void send("1", "Haan, kar do")}>
-                Haan, kar do
+              <Button
+                variant="primary"
+                onClick={() =>
+                  void send("1", l("Yes, do it", "हाँ, कर दो", "Haan, kar do"))
+                }
+              >
+                {l("Yes, do it", "हाँ, कर दो", "Haan, kar do")}
               </Button>
-              <Button variant="secondary" onClick={() => void send("2", "Nahi, rehne do")}>
-                Nahi, rehne do
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  void send(
+                    "2",
+                    l("No, leave it", "नहीं, रहने दो", "Nahi, rehne do"),
+                  )
+                }
+              >
+                {l("No, leave it", "नहीं, रहने दो", "Nahi, rehne do")}
               </Button>
             </div>
-            <p className="sc-note">Ask something else to leave it pending. It expires after 30 minutes.</p>
+            <p className="sc-note">
+              {l(
+                "Ask something else to leave it pending. It expires after 30 minutes.",
+                "कुछ और पूछें तो यह बाक़ी रहेगा। 30 मिनट बाद ख़त्म हो जाएगा।",
+                "Kuch aur poochho to yeh pending rahega. 30 minute baad expire ho jayega.",
+              )}
+            </p>
           </div>
         ) : null}
         {sending ? (
           <div className="sc-wait">
-            <Skeleton shape="rows" count={2} cols={1} label="Saathi is working on it" />
+            <Skeleton
+              shape="rows"
+              count={2}
+              cols={1}
+              label={l(
+                "Saathi is working on it",
+                "साथी जवाब तैयार कर रहा है",
+                "Saathi jawab taiyaar kar raha hai",
+              )}
+            />
           </div>
         ) : null}
         {failed ? (
           <div className="sc-err">
-            <ErrorState title="Saathi could not answer" error={failed.message} onRetry={() => void send(failed.text, failed.text, true)} retrying={sending} />
+            <ErrorState
+              title={l(
+                "Saathi could not answer",
+                "साथी जवाब नहीं दे पाया",
+                "Saathi jawab nahi de paya",
+              )}
+              error={failed.message}
+              onRetry={() => void send(failed.text, failed.text, true)}
+              retrying={sending}
+            />
           </div>
         ) : null}
       </div>
@@ -198,12 +375,22 @@ export function ChatView() {
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKey}
           maxLength={2000}
-          placeholder="Ask Saathi"
-          aria-label="Message to Saathi"
+          placeholder={l("Ask Saathi", "साथी से पूछें", "Saathi se poochho")}
+          aria-label={l(
+            "Message to Saathi",
+            "साथी को संदेश",
+            "Saathi ko message",
+          )}
           disabled={!ready && wasOpen}
         />
-        <Button type="submit" variant="primary" icon={<SendIcon size={16} />} loading={sending} disabled={!draft.trim() || (!ready && wasOpen)}>
-          Send
+        <Button
+          type="submit"
+          variant="primary"
+          icon={<SendIcon size={16} />}
+          loading={sending}
+          disabled={!draft.trim() || (!ready && wasOpen)}
+        >
+          {l("Send", "भेजें", "Bhejo")}
         </Button>
       </form>
     </div>

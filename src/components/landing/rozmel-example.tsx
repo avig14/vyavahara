@@ -1,5 +1,8 @@
+"use client";
+
 import { Badge, Table } from "@/components/ui";
 import { rupees } from "@/lib/format";
+import { useT } from "@/lib/ui/lang";
 
 interface Line {
   time: string;
@@ -24,39 +27,40 @@ function withTotals(lines: readonly Line[]) {
 
 /** The rozmel as a ruled day-book, newest line on top, labelled as an example. */
 export function RozmelExample() {
+  const t = useT();
   const rows = withTotals(SAMPLE).reverse();
   return (
     <figure className="lp-roz">
       <figcaption className="lp-roz-cap">
-        <Badge tone="info">Example</Badge>
-        <span>Sample items and amounts, not real sales.</span>
+        <Badge tone="info">{t("ex.badge")}</Badge>
+        <span>{t("ex.note")}</span>
       </figcaption>
-      <Table caption="Example rozmel: sample payments with a running total, newest first">
+      <Table caption={t("ex.caption")}>
         <thead>
           <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Items</th>
-            <th scope="col">Paid by</th>
+            <th scope="col">{t("ex.time")}</th>
+            <th scope="col">{t("ex.items")}</th>
+            <th scope="col">{t("ex.by")}</th>
             <th scope="col" className="num">
-              Amount
+              {t("ex.amount")}
             </th>
             <th scope="col" className="num">
-              Total so far
+              {t("ex.total")}
             </th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.time}>
-              <td data-label="Time" className="num">
+              <td data-label={t("ex.time")} className="num">
                 {r.time}
               </td>
-              <td data-label="Items">{r.items}</td>
-              <td data-label="Paid by">{r.method}</td>
-              <td data-label="Amount" className="num">
+              <td data-label={t("ex.items")}>{r.items}</td>
+              <td data-label={t("ex.by")}>{r.method}</td>
+              <td data-label={t("ex.amount")} className="num">
                 {rupees(r.paise)}
               </td>
-              <td data-label="Total so far" className="num tot">
+              <td data-label={t("ex.total")} className="num tot">
                 {rupees(r.totalPaise)}
               </td>
             </tr>

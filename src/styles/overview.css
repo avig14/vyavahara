@@ -85,7 +85,7 @@
 /* ---- reports ---- */
 .rp-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm) var(--space-lg); padding-bottom: var(--space-lg); }
 .rp-doc { display: grid; gap: var(--space-xl); max-width: 60rem; }
-.rp-masthead { display: grid; gap: var(--space-3xs); padding-bottom: var(--space-sm); border-bottom: 2px solid var(--color-ink); }
+.rp-masthead { display: grid; gap: var(--space-3xs); padding-bottom: var(--space-sm); }
 .rp-masthead h2 { font-size: var(--text-xl); font-weight: 700; line-height: 1.15; }
 .rp-masthead p { margin: 0; color: var(--color-muted); font-size: var(--text-sm); }
 .rp-sec { display: grid; gap: var(--space-xs); min-width: 0; }

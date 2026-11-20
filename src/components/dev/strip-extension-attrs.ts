@@ -9,7 +9,7 @@
  * seconds after load, so an extension that keeps re-stamping cannot make it loop.
  */
 export const STRIP_EXTENSION_ATTRS = `(function () {
-  var PREFIXES = ["bis_", "__processed_"];
+  var PREFIXES = ["bis_", "__processed_", "data-berrycast", "data-gr-", "data-new-gr-", "data-lt-"];
   function ours(name) {
     for (var i = 0; i < PREFIXES.length; i++) if (name.indexOf(PREFIXES[i]) === 0) return true;
     return false;

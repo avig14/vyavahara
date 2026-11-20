@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { useQueryParams } from "@/lib/ui/url-state";
+import { LangToggle } from "@/lib/ui/lang";
 import { NAV_ITEMS, isCurrent } from "./nav";
 
 const KEEP = ["period", "from", "to"] as const;
@@ -21,7 +22,13 @@ export function Wordmark({ href = "/dashboard" }: { href?: string }) {
   );
 }
 
-function NavLinks({ search, onNavigate }: { search: string; onNavigate?: () => void }) {
+function NavLinks({
+  search,
+  onNavigate,
+}: {
+  search: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   return (
     <ul className="nav-list">
@@ -29,8 +36,15 @@ function NavLinks({ search, onNavigate }: { search: string; onNavigate?: () => v
         const current = isCurrent(pathname, item.href);
         return (
           <li key={item.href}>
-            <Link href={`${item.href}${search}`} className="nav-link" aria-current={current ? "page" : undefined} onClick={onNavigate}>
-              <span className="nav-label">{item.label}</span>
+            <Link
+              href={`${item.href}${search}`}
+              className="nav-link"
+              aria-current={current ? "page" : undefined}
+              onClick={onNavigate}
+            >
+              <span className="nav-label">
+                <span className="nav-name">{item.label}</span>
+              </span>
               <span className="nav-hi deva" lang="hi">
                 {item.hindi}
               </span>
@@ -71,8 +85,18 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
         </Suspense>
       </nav>
       <div className="side-foot">
-        <Link href="/soundbox" prefetch={false} className="nav-link" onClick={onNavigate}>
-          <span className="nav-label">Payment screen</span>
+        <div className="side-lang">
+          <LangToggle onDark />
+        </div>
+        <Link
+          href="/soundbox"
+          prefetch={false}
+          className="nav-link"
+          onClick={onNavigate}
+        >
+          <span className="nav-label">
+            <span className="nav-name">Payment screen</span>
+          </span>
           <span className="nav-hi deva" lang="hi">
             रोज़मेल
           </span>

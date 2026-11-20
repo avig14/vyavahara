@@ -1,9 +1,20 @@
 "use client";
 
+import { useL } from "@/lib/ui/lang";
+import { tt, groupTitle, groupDesc, clusterText } from "./settings-i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Button, ConfirmDialog, PageHeader, useToast } from "@/components/ui";
 import { deleteJson, putJson, toApiError } from "@/lib/ui/api";
-import { FIELDS, GROUPS, findStale, findUnmapped, getAt, sameValue, setAt, type Tree } from "./fields";
+import {
+  FIELDS,
+  GROUPS,
+  findStale,
+  findUnmapped,
+  getAt,
+  sameValue,
+  setAt,
+  type Tree,
+} from "./fields";
 import { SettingRow } from "./setting-row";
 import { useLeaveGuard } from "./use-leave-guard";
 import { parseServerError, underPath, validate, type Errors } from "./validate";
@@ -20,18 +31,43 @@ function plural(n: number, one: string, many: string) {
 }
 
 function omitUnder(errs: Errors, path: string): Errors {
-  return Object.fromEntries(Object.entries(errs).filter(([k]) => !underPath(k, path)));
+  return Object.fromEntries(
+    Object.entries(errs).filter(([k]) => !underPath(k, path)),
+  );
 }
 
 function weightsTotal(draft: Tree): number {
-  return ["oldest", "repay", "utilization", "lastPayment", "growing"].reduce((n, k) => {
-    const v = getAt(draft, `khata.weights.${k}`);
-    return n + (typeof v === "number" ? v : 0);
-  }, 0);
+  return ["oldest", "repay", "utilization", "lastPayment", "growing"].reduce(
+    (n, k) => {
+      const v = getAt(draft, `khata.weights.${k}`);
+      return n + (typeof v === "number" ? v : 0);
+    },
+    0,
+  );
 }
 
+const BASIC = ["language", "alerts", "festivals", "inventory", "cash"];
+const ADVANCED = [
+  "khata",
+  "anomalies",
+  "customers",
+  "recommendations",
+  "ingest",
+  "gst",
+  "loan",
+];
+
 export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
-  const toast = useToast();
+  const toastRaw = useToast();
+  const l = useL();
+  const toast = {
+    push: (t: Parameters<typeof toastRaw.push>[0]) =>
+      toastRaw.push({
+        ...t,
+        title: tt(t.title, l),
+        detail: typeof t.detail === "string" ? tt(t.detail, l) : t.detail,
+      }),
+  };
   const { defaults } = initial;
   const [saved, setSaved] = useState<Tree>(initial.settings);
   const [draft, setDraft] = useState<Tree>(initial.settings);
@@ -44,6 +80,7 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
   const [resetting, setResetting] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [status, setStatus] = useState("");
+  const sayStatus = (m: string) => setStatus(tt(m, l));
   const [active, setActive] = useState<string>(GROUPS[0].id);
 
   const unmapped = useMemo(() => findUnmapped(defaults), [defaults]);
@@ -52,18 +89,36 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const stale = findStale(defaults);
-    if (unmapped.length) console.warn("Settings screen: no field for", unmapped);
-    if (stale.length) console.warn("Settings screen: field map has keys the API no longer defines", stale);
+    if (unmapped.length)
+      console.warn("Settings screen: no field for", unmapped);
+    if (stale.length)
+      console.warn(
+        "Settings screen: field map has keys the API no longer defines",
+        stale,
+      );
   }, [defaults, unmapped]);
 
-  const changedPaths = useMemo(() => FIELDS.filter((f) => !sameValue(getAt(draft, f.path), getAt(saved, f.path))).map((f) => f.path), [draft, saved]);
+  const changedPaths = useMemo(
+    () =>
+      FIELDS.filter(
+        (f) => !sameValue(getAt(draft, f.path), getAt(saved, f.path)),
+      ).map((f) => f.path),
+    [draft, saved],
+  );
   const dirty = changedPaths.length > 0;
   const clientErrors = useMemo(() => validate(draft), [draft]);
-  const differing = useMemo(() => FIELDS.filter((f) => !sameValue(getAt(saved, f.path), getAt(defaults, f.path))).length, [saved, defaults]);
+  const differing = useMemo(
+    () =>
+      FIELDS.filter(
+        (f) => !sameValue(getAt(saved, f.path), getAt(defaults, f.path)),
+      ).length,
+    [saved, defaults],
+  );
 
   const shown: Errors = useMemo(() => {
     const out: Errors = { ...serverErrors };
-    for (const [k, msg] of Object.entries(clientErrors)) if (attempted || touched[k]) out[k] = msg;
+    for (const [k, msg] of Object.entries(clientErrors))
+      if (attempted || touched[k]) out[k] = msg;
     return out;
   }, [clientErrors, serverErrors, touched, attempted]);
 
@@ -71,11 +126,17 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
 
   // which section the reader is in, for the index
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>("[data-sec]"));
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-sec]"),
+    );
     if (els.length === 0) return;
     const io = new IntersectionObserver(
       (entries) => {
-        const hit = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        const hit = entries
+          .filter((e) => e.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          )[0];
         if (hit) setActive((hit.target as HTMLElement).dataset.sec ?? "");
       },
       { rootMargin: "-15% 0px -75% 0px" },
@@ -105,14 +166,16 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
   function resetOne(path: string) {
     setValue(path, getAt(defaults, path));
     setNonce((n) => n + 1);
-    window.requestAnimationFrame(() => document.getElementById(`f-${path}`)?.focus());
+    window.requestAnimationFrame(() =>
+      document.getElementById(`f-${path}`)?.focus(),
+    );
   }
 
   function discard() {
     setDraft(saved);
     clearFeedback();
     setNonce((n) => n + 1);
-    setStatus("Changes discarded.");
+    sayStatus("Changes discarded.");
   }
 
   function focusFirst(errs: Errors) {
@@ -132,7 +195,7 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
     const count = Object.keys(clientErrors).length;
     if (count > 0) {
       const msg = `Fix ${plural(count, "field", "fields")} before saving.`;
-      setStatus(msg);
+      sayStatus(msg);
       toast.push({ title: "Not saved", detail: msg, tone: "error" });
       focusFirst(errs);
       return;
@@ -147,7 +210,7 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
       clearFeedback();
       setNonce((n) => n + 1);
       const msg = `${plural(changedPaths.length, "setting", "settings")} saved.`;
-      setStatus(msg);
+      sayStatus(msg);
       toast.push({ title: "Settings saved", detail: msg, tone: "success" });
     } catch (e) {
       const err = toApiError(e);
@@ -156,12 +219,15 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
         setServerErrors(parsed.fields);
         setBanner(parsed.other);
         const n = Object.keys(parsed.fields).length;
-        const msg = n > 0 ? `The server did not accept ${plural(n, "value", "values")}. See the marked fields.` : err.message;
-        setStatus(`Not saved. ${msg}`);
+        const msg =
+          n > 0
+            ? `The server did not accept ${plural(n, "value", "values")}. See the marked fields.`
+            : err.message;
+        sayStatus(`Not saved. ${msg}`);
         toast.push({ title: "Not saved", detail: msg, tone: "error" });
         focusFirst(parsed.fields);
       } else {
-        setStatus(`Not saved. ${err.message}`);
+        sayStatus(`Not saved. ${err.message}`);
         toast.push({ title: "Not saved", detail: err.message, tone: "error" });
       }
     } finally {
@@ -178,30 +244,113 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
       clearFeedback();
       setNonce((n) => n + 1);
       setResetOpen(false);
-      setStatus("Every setting is back to its default.");
-      toast.push({ title: "Back to defaults", detail: "Every setting is at its factory value.", tone: "success" });
+      sayStatus("Every setting is back to its default.");
+      toast.push({
+        title: "Back to defaults",
+        detail: "Every setting is at its factory value.",
+        tone: "success",
+      });
     } catch (e) {
       const err = toApiError(e);
       setResetOpen(false);
-      setStatus(`Reset failed. ${err.message}`);
-      toast.push({ title: "Could not reset", detail: err.message, tone: "error" });
+      sayStatus(`Reset failed. ${err.message}`);
+      toast.push({
+        title: "Could not reset",
+        detail: err.message,
+        tone: "error",
+      });
     } finally {
       setResetting(false);
     }
   }
 
-  const sections = GROUPS.map((g) => ({ g, fields: FIELDS.filter((f) => f.group === g.id) })).filter((s) => s.fields.length > 0);
+  const sectionsAll = GROUPS.map((g) => ({
+    g,
+    fields: FIELDS.filter((f) => f.group === g.id),
+  })).filter((s) => s.fields.length > 0);
+  const sections = [
+    ...BASIC.map((id) => sectionsAll.find((x) => x.g.id === id)),
+    ...ADVANCED.map((id) => sectionsAll.find((x) => x.g.id === id)),
+  ].filter((x): x is (typeof sectionsAll)[number] => !!x);
+  const basicSections = sections.filter((x) => BASIC.includes(x.g.id));
+  const advSections = sections.filter((x) => ADVANCED.includes(x.g.id));
+  const advError = advSections.some(({ fields }) =>
+    fields.some((f) => shown[f.path]),
+  );
+  const [advOpen, setAdvOpen] = useState(false);
   const total = FIELDS.length;
+
+  const renderSection = ({ g, fields }: (typeof sectionsAll)[number]) => {
+    let lastCluster: string | undefined;
+    return (
+      <section
+        key={g.id}
+        id={`sec-${g.id}`}
+        data-sec={g.id}
+        className="st-sec"
+        aria-labelledby={`sec-${g.id}-h`}
+      >
+        <div className="st-sec-head">
+          <h2 id={`sec-${g.id}-h`}>{groupTitle(g, l)}</h2>
+        </div>
+        <p className="st-sec-desc">{groupDesc(g, l)}</p>
+        <div className="st-rows">
+          {fields.map((f) => {
+            const head =
+              f.cluster && f.cluster !== lastCluster ? (
+                <div className="st-cluster" key={`c-${f.cluster}`}>
+                  <h3>{clusterText(f.cluster, l)}</h3>
+                  {f.path === "khata.weights.oldest" ? (
+                    <p>
+                      {tt(
+                        `Weights add up to ${weightsTotal(draft)}. Only their proportions matter.`,
+                        l,
+                      )}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null;
+            lastCluster = f.cluster;
+            return (
+              <div key={f.path} className="st-item">
+                {head}
+                <SettingRow
+                  def={f}
+                  value={getAt(draft, f.path)}
+                  saved={getAt(saved, f.path)}
+                  defaultValue={getAt(defaults, f.path)}
+                  errors={shown}
+                  nonce={nonce}
+                  onChange={setValue}
+                  onTouch={touch}
+                  onReset={resetOne}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <>
       <PageHeader
         title="Settings"
         hindi="सेटिंग"
-        description={differing === 0 ? `All ${total} settings are at their defaults. Change any of them to fit your shop.` : `${differing} of ${total} settings differ from the defaults. Every threshold Vyavahāra uses is yours to change.`}
+        description={tt(
+          differing === 0
+            ? `All ${total} settings are at their defaults. Change any of them to fit your shop.`
+            : `${differing} of ${total} settings differ from the defaults. Every threshold Vyavahāra uses is yours to change.`,
+          l,
+        )}
         actions={
-          <Button variant="danger" onClick={() => setResetOpen(true)} disabled={differing === 0 && !dirty}>
-            Reset all to defaults
+          <Button
+            variant="danger"
+            onClick={() => setResetOpen(true)}
+            disabled={differing === 0 && !dirty}
+          >
+            {tt("Reset all to defaults", l)}
           </Button>
         }
       />
@@ -210,22 +359,33 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
       </p>
 
       <div className="st">
-        <nav className="st-index" aria-label="Settings sections">
+        <nav className="st-index" aria-label={tt("Settings sections", l)}>
           <ul>
-            {sections.map(({ g }) => (
+            {basicSections.map(({ g }) => (
               <li key={g.id}>
-                <a href={`#sec-${g.id}`} aria-current={active === g.id ? "location" : undefined}>
-                  {g.title}
+                <a
+                  href={`#sec-${g.id}`}
+                  aria-current={active === g.id ? "location" : undefined}
+                >
+                  {groupTitle(g, l)}
                 </a>
               </li>
             ))}
             {unmapped.length > 0 ? (
               <li>
-                <a href={`#sec-${UNMAPPED_ID}`} aria-current={active === UNMAPPED_ID ? "location" : undefined}>
-                  Unmapped
+                <a
+                  href={`#sec-${UNMAPPED_ID}`}
+                  aria-current={active === UNMAPPED_ID ? "location" : undefined}
+                >
+                  {tt("Unmapped", l)}
                 </a>
               </li>
             ) : null}
+            <li>
+              <a href="#sec-advanced" onClick={() => setAdvOpen(true)}>
+                {tt("Advanced", l)}
+              </a>
+            </li>
           </ul>
         </nav>
 
@@ -239,54 +399,55 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
         >
           {banner.length > 0 ? (
             <div className="st-banner" role="alert">
-              <p className="st-banner-title">The server rejected the change</p>
+              <p className="st-banner-title">
+                {tt("The server rejected the change", l)}
+              </p>
               {banner.map((m) => (
                 <p key={m}>{m}</p>
               ))}
             </div>
           ) : null}
 
-          {sections.map(({ g, fields }) => {
-            let lastCluster: string | undefined;
-            return (
-              <section key={g.id} id={`sec-${g.id}`} data-sec={g.id} className="st-sec" aria-labelledby={`sec-${g.id}-h`}>
-                <div className="st-sec-head">
-                  <h2 id={`sec-${g.id}-h`}>{g.title}</h2>
-                  {g.hindi ? (
-                    <span className="st-hi deva" lang="hi">
-                      {g.hindi}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="st-sec-desc">{g.description}</p>
-                <div className="st-rows">
-                  {fields.map((f) => {
-                    const head =
-                      f.cluster && f.cluster !== lastCluster ? (
-                        <div className="st-cluster" key={`c-${f.cluster}`}>
-                          <h3>{f.cluster}</h3>
-                          {f.path === "khata.weights.oldest" ? <p>Weights add up to {weightsTotal(draft)}. Only their proportions matter.</p> : null}
-                        </div>
-                      ) : null;
-                    lastCluster = f.cluster;
-                    return (
-                      <div key={f.path} className="st-item">
-                        {head}
-                        <SettingRow def={f} value={getAt(draft, f.path)} saved={getAt(saved, f.path)} defaultValue={getAt(defaults, f.path)} errors={shown} nonce={nonce} onChange={setValue} onTouch={touch} onReset={resetOne} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
+          {basicSections.map(renderSection)}
+
+          <details
+            className="disc st-adv"
+            open={advOpen || advError}
+            onToggle={(e) => setAdvOpen(e.currentTarget.open)}
+          >
+            <summary>
+              <span>{tt("Advanced settings, for experts", l)}</span>
+              <span className="disc-meta">
+                {tt(`${advSections.length} sections`, l)}
+              </span>
+            </summary>
+            <div className="st-adv-body">
+              <p className="st-sec-desc">
+                {tt(
+                  "The defaults suit most shops. Change these only if you know why.",
+                  l,
+                )}
+              </p>
+              {advSections.map(renderSection)}
+            </div>
+          </details>
 
           {unmapped.length > 0 ? (
-            <section id={`sec-${UNMAPPED_ID}`} data-sec={UNMAPPED_ID} className="st-sec" aria-labelledby={`sec-${UNMAPPED_ID}-h`}>
+            <section
+              id={`sec-${UNMAPPED_ID}`}
+              data-sec={UNMAPPED_ID}
+              className="st-sec"
+              aria-labelledby={`sec-${UNMAPPED_ID}-h`}
+            >
               <div className="st-sec-head">
-                <h2 id={`sec-${UNMAPPED_ID}-h`}>Unmapped settings</h2>
+                <h2 id={`sec-${UNMAPPED_ID}-h`}>
+                  {tt("Unmapped settings", l)}
+                </h2>
               </div>
-              <p className="st-sec-desc">The API defines these, but this screen has no field for them yet. They keep their current values.</p>
+              <p className="st-sec-desc">
+                The API defines these, but this screen has no field for them
+                yet. They keep their current values.
+              </p>
               <div className="st-rows">
                 {unmapped.map((p) => (
                   <div key={p} className="st-row" data-wide="">
@@ -296,7 +457,10 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
                           Unmapped setting <code>{p}</code>
                         </span>
                       </div>
-                      <p className="st-desc">Current value: {JSON.stringify(getAt(saved, p))}. Add it to src/components/settings/fields.ts.</p>
+                      <p className="st-desc">
+                        Current value: {JSON.stringify(getAt(saved, p))}. Add it
+                        to src/components/settings/fields.ts.
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -305,17 +469,33 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
           ) : null}
 
           {dirty ? (
-            <div className="st-bar" role="group" aria-label="Unsaved changes">
+            <div
+              className="st-bar"
+              role="group"
+              aria-label={tt("Unsaved changes", l)}
+            >
               <p className="st-bar-text">
-                <strong>{plural(changedPaths.length, "unsaved change", "unsaved changes")}</strong>
-                {Object.keys(clientErrors).length > 0 && attempted ? ` ${plural(Object.keys(clientErrors).length, "field needs", "fields need")} fixing.` : ""}
+                <strong>
+                  {l(
+                    plural(
+                      changedPaths.length,
+                      "unsaved change",
+                      "unsaved changes",
+                    ),
+                    `${changedPaths.length} बिना सेव बदलाव`,
+                    `${changedPaths.length} bina save badlav`,
+                  )}
+                </strong>
+                {Object.keys(clientErrors).length > 0 && attempted
+                  ? ` ${l(`${plural(Object.keys(clientErrors).length, "field needs", "fields need")} fixing.`, `${Object.keys(clientErrors).length} फ़ील्ड ठीक करने हैं।`, `${Object.keys(clientErrors).length} field theek karne hain.`)}`
+                  : ""}
               </p>
               <div className="st-bar-act">
                 <Button variant="quiet" onClick={discard} disabled={saving}>
-                  Discard
+                  {tt("Discard", l)}
                 </Button>
                 <Button variant="primary" type="submit" loading={saving}>
-                  Save changes
+                  {tt("Save changes", l)}
                 </Button>
               </div>
             </div>
@@ -324,20 +504,37 @@ export function SettingsEditor({ initial }: { initial: SettingsPayload }) {
       </div>
 
       {resetOpen ? (
-      <ConfirmDialog
-        open
-        tone="danger"
-        title="Reset every setting to its default?"
-        description={dirty ? "All saved settings go back to their factory values, and the edits you have not saved are dropped. This cannot be undone." : "All saved settings go back to their factory values. This cannot be undone."}
-        confirmLabel="Reset all"
-        cancelLabel="Keep my settings"
-        loading={resetting}
-        onConfirm={() => void resetAll()}
-        onCancel={() => setResetOpen(false)}
-      />
+        <ConfirmDialog
+          open
+          tone="danger"
+          title={tt("Reset every setting to its default?", l)}
+          description={tt(
+            dirty
+              ? "All saved settings go back to their factory values, and the edits you have not saved are dropped. This cannot be undone."
+              : "All saved settings go back to their factory values. This cannot be undone.",
+            l,
+          )}
+          confirmLabel={tt("Reset all", l)}
+          cancelLabel={tt("Keep my settings", l)}
+          loading={resetting}
+          onConfirm={() => void resetAll()}
+          onCancel={() => setResetOpen(false)}
+        />
       ) : null}
       {guard.leaveOpen ? (
-      <ConfirmDialog open title="Leave without saving?" description={`You have ${plural(changedPaths.length, "unsaved change", "unsaved changes")} on this page. They are lost if you leave.`} confirmLabel="Leave" cancelLabel="Keep editing" tone="danger" onConfirm={guard.leave} onCancel={guard.stay} />
+        <ConfirmDialog
+          open
+          title={tt("Leave without saving?", l)}
+          description={tt(
+            `You have ${plural(changedPaths.length, "unsaved change", "unsaved changes")} on this page. They are lost if you leave.`,
+            l,
+          )}
+          confirmLabel={tt("Leave", l)}
+          cancelLabel={tt("Keep editing", l)}
+          tone="danger"
+          onConfirm={guard.leave}
+          onCancel={guard.stay}
+        />
       ) : null}
     </>
   );

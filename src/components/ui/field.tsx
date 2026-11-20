@@ -1,5 +1,6 @@
 "use client";
 
+import { useL } from "@/lib/ui/lang";
 import { createContext, useContext, useId, useState, type ComponentProps, type ReactNode } from "react";
 import { cx } from "@/lib/ui/cx";
 import { toPaise } from "@/lib/format";
@@ -117,6 +118,7 @@ export interface SwitchProps extends Omit<ComponentProps<"input">, "type" | "onC
 }
 
 export function Switch({ checked, onChange, label, hint, showState = false, className, disabled, ...rest }: SwitchProps) {
+  const l = useL();
   return (
     <label className={cx("sw", className)} data-disabled={disabled ? "" : undefined}>
       <input {...rest} type="checkbox" role="switch" className="sw-input" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
@@ -124,7 +126,7 @@ export function Switch({ checked, onChange, label, hint, showState = false, clas
         <span className="sw-label">{label}</span>
         {hint ? <span className="sw-hint">{hint}</span> : null}
       </span>
-      {showState ? <span className="sw-state">{checked ? "On" : "Off"}</span> : null}
+      {showState ? <span className="sw-state">{checked ? l("On", "चालू", "Chalu") : l("Off", "बंद", "Band")}</span> : null}
     </label>
   );
 }

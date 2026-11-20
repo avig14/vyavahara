@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useL } from "@/lib/ui/lang";
+import { BrandIcon } from "@/components/ui/brand-icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { CloseIcon } from "@/components/ui/icons";
 import { ChatBody } from "./chat-body";
-
 export interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
@@ -18,6 +19,7 @@ const PHONE = "(max-width: 60rem)";
  * Takes no children: the body lives in `chat-body.tsx`.
  */
 export function ChatPanel({ open, onClose }: ChatPanelProps) {
+  const l = useL();
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<Element | null>(null);
 
@@ -30,7 +32,8 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
       else d.show();
     } else if (!open && d.open) {
       d.close();
-      if (opener.current instanceof HTMLElement && opener.current.isConnected) opener.current.focus();
+      if (opener.current instanceof HTMLElement && opener.current.isConnected)
+        opener.current.focus();
     }
   }, [open]);
 
@@ -51,9 +54,13 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
     >
       <div className="chat-head">
         <h2 id="saathi-title" className="chat-title">
-          Saathi <span className="deva chat-hi" lang="hi">साथी</span>
+          <BrandIcon name="saathi" size={28} className="btn-ic" />
+          {l("Saathi", "साथी", "Saathi")}
         </h2>
-        <IconButton label="Close Saathi" onClick={onClose}>
+        <IconButton
+          label={l("Close Saathi", "साथी बंद करें", "Saathi band karo")}
+          onClick={onClose}
+        >
           <CloseIcon size={18} />
         </IconButton>
       </div>

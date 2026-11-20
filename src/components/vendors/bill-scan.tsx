@@ -1,8 +1,17 @@
 "use client";
 
+import { useL, type L } from "@/lib/ui/lang";
 import { useEffect, useId, useRef, useState } from "react";
 import type { BillLineReview, BillReview } from "@/lib/ingest/bill-plan";
-import { Badge, Button, DataTable, Field, Select, useToast, type Column } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  DataTable,
+  Field,
+  Select,
+  useToast,
+  type Column,
+} from "@/components/ui";
 import { rupeesExact } from "@/lib/format";
 import { postForm, postJson, toApiError } from "@/lib/ui/api";
 import { ImageReadError, shrinkImage } from "@/lib/ui/image";
@@ -15,33 +24,104 @@ interface ScanResponse {
 
 type Stage = "pick" | "reading" | "review" | "saving";
 
-const VERDICT_COPY = {
-  good: { title: "Bill saaf padha gaya", body: "Neeche ek baar mila lo, phir stock add karo.", tone: "success" },
-  check: { title: "Ek baar dhyaan se dekho", body: "Kuch cheezein pakki nahi hain. Sahi ho to accept karo, warna dobara photo lo.", tone: "warn" },
-  retake: { title: "Yeh bill save nahi ho sakta", body: "Dobara photo lo. Poora bill, seedha aur roshni mein.", tone: "danger" },
-} as const;
+const verdictCopy = (l: L) =>
+  ({
+    good: {
+      title: l("Bill read clearly", "बिल साफ़ पढ़ा गया", "Bill saaf padha gaya"),
+      body: l(
+        "Check it once below, then add the stock.",
+        "नीचे एक बार मिला लें, फिर स्टॉक जोड़ें।",
+        "Neeche ek baar mila lo, phir stock add karo.",
+      ),
+      tone: "success",
+    },
+    check: {
+      title: l(
+        "Please look carefully",
+        "ज़रा ध्यान से देखें",
+        "Ek baar dhyaan se dekho",
+      ),
+      body: l(
+        "Some things are not certain. If it is right, accept; otherwise take the photo again.",
+        "कुछ चीज़ें पक्की नहीं हैं। सही हो तो मंज़ूर करें, वरना दोबारा फ़ोटो लें।",
+        "Kuch cheezein pakki nahi hain. Sahi ho to accept karo, warna dobara photo lo.",
+      ),
+      tone: "warn",
+    },
+    retake: {
+      title: l(
+        "This bill cannot be saved",
+        "यह बिल सेव नहीं हो सकता",
+        "Yeh bill save nahi ho sakta",
+      ),
+      body: l(
+        "Take the photo again. The whole bill, straight, in good light.",
+        "दोबारा फ़ोटो लें। पूरा बिल, सीधा और रोशनी में।",
+        "Dobara photo lo. Poora bill, seedha aur roshni mein.",
+      ),
+      tone: "danger",
+    },
+  }) as const;
 
-const dayLabel = (key: string) => new Date(`${key}T00:00:00Z`).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-const qtyLabel = (l: BillLineReview) => `${Number.isInteger(l.qty) ? l.qty : l.qty.toFixed(2)}${l.unit ? ` ${l.unit}` : ""}`;
+const dayLabel = (key: string) =>
+  new Date(`${key}T00:00:00Z`).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+const qtyLabel = (x: BillLineReview) =>
+  `${Number.isInteger(x.qty) ? x.qty : x.qty.toFixed(2)}${x.unit ? ` ${x.unit}` : ""}`;
 
-const COLUMNS: Column<BillLineReview>[] = [
-  { key: "printed", header: "Bill par likha", primary: true, cell: (l) => l.printedName },
+const columns = (l: L): Column<BillLineReview>[] => [
+  {
+    key: "printed",
+    header: l("Printed on the bill", "बिल पर लिखा", "Bill par likha"),
+    primary: true,
+    cell: (r) => r.printedName,
+  },
   {
     key: "item",
-    header: "Aapka item",
-    cell: (l) => (l.product ? l.product.name : <Badge tone="warn">Catalog mein nahi mila</Badge>),
+    header: l("Your item", "आपका आइटम", "Aapka item"),
+    cell: (r) =>
+      r.product ? (
+        r.product.name
+      ) : (
+        <Badge tone="warn">
+          {l("Not in catalogue", "कैटलॉग में नहीं मिला", "Catalog mein nahi mila")}
+        </Badge>
+      ),
   },
-  { key: "qty", header: "Qty", num: true, cell: qtyLabel },
-  { key: "rate", header: "Rate", num: true, cell: (l) => (l.unitCostPaise === null ? "-" : rupeesExact(l.unitCostPaise)) },
-  { key: "amt", header: "Amount", num: true, cell: (l) => (l.lineTotalPaise === null ? "-" : rupeesExact(l.lineTotalPaise)) },
+  { key: "qty", header: l("Qty", "मात्रा", "Qty"), num: true, cell: qtyLabel },
+  {
+    key: "rate",
+    header: l("Rate", "रेट", "Rate"),
+    num: true,
+    cell: (r) =>
+      r.unitCostPaise === null ? "-" : rupeesExact(r.unitCostPaise),
+  },
+  {
+    key: "amt",
+    header: l("Amount", "रक़म", "Amount"),
+    num: true,
+    cell: (r) =>
+      r.lineTotalPaise === null ? "-" : rupeesExact(r.lineTotalPaise),
+  },
 ];
 
 /**
  * Photo of a supplier bill → what we read → the owner accepts or rejects. Nothing touches stock or payables until Accept.
  * Closing the dialog without deciding counts as a reject, so a stale question can never be answered by accident later.
  */
-export function BillScan({ vendors, onDone }: { vendors: { id: string; name: string }[] | undefined; onDone: () => void }) {
+export function BillScan({
+  vendors,
+  onDone,
+}: {
+  vendors: { id: string; name: string }[] | undefined;
+  onDone: () => void;
+}) {
   const { push } = useToast();
+  const l = useL();
   const dlg = useRef<HTMLDialogElement>(null);
   const cam = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
@@ -60,7 +140,10 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
   }, [open]);
 
   const cancelPending = (id: string | null) => {
-    if (id) postJson(`/api/actions/${id}`, { choice: "cancel" }).catch(() => undefined); // already gone or expired is fine
+    if (id)
+      postJson(`/api/actions/${id}`, { choice: "cancel" }).catch(
+        () => undefined,
+      ); // already gone or expired is fine
   };
 
   const start = () => {
@@ -81,7 +164,13 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
     cancelPending(result?.pendingId ?? null);
     setResult(null);
     setStage("pick");
-    setNotice("Pichla bill hata diya. Naya photo lo.");
+    setNotice(
+      l(
+        "Previous bill removed. Take a new photo.",
+        "पिछला बिल हटा दिया। नई फ़ोटो लें।",
+        "Pichla bill hata diya. Naya photo lo.",
+      ),
+    );
   };
 
   const onFile = async (file: File | undefined) => {
@@ -97,7 +186,9 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
       setStage("review");
     } catch (e) {
       setStage("pick");
-      setNotice(e instanceof ImageReadError ? e.message : toApiError(e).message);
+      setNotice(
+        e instanceof ImageReadError ? e.message : toApiError(e).message,
+      );
     }
   };
 
@@ -105,8 +196,15 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
     if (!result?.pendingId) return;
     setStage("saving");
     try {
-      const r = await postJson<{ reply: string }>(`/api/actions/${result.pendingId}`, { choice: "confirm" });
-      push({ title: "Stock update ho gaya", detail: r.reply, tone: "success" });
+      const r = await postJson<{ reply: string }>(
+        `/api/actions/${result.pendingId}`,
+        { choice: "confirm" },
+      );
+      push({
+        title: l("Stock updated", "स्टॉक अपडेट हो गया", "Stock update ho gaya"),
+        detail: r.reply,
+        tone: "success",
+      });
       setOpen(false);
       setResult(null);
       onDone();
@@ -114,26 +212,46 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
       const err = toApiError(e);
       setStage("review");
       push({
-        title: err.status === 410 || err.status === 409 ? "Yeh bill ab save nahi ho sakta" : "Save nahi hua",
-        detail: err.status === 410 ? "Time nikal gaya. Dobara photo lo." : err.message,
+        title:
+          err.status === 410 || err.status === 409
+            ? l(
+                "This bill can no longer be saved",
+                "यह बिल अब सेव नहीं हो सकता",
+                "Yeh bill ab save nahi ho sakta",
+              )
+            : l("Not saved", "सेव नहीं हुआ", "Save nahi hua"),
+        detail:
+          err.status === 410
+            ? l(
+                "Time ran out. Take the photo again.",
+                "समय निकल गया। दोबारा फ़ोटो लें।",
+                "Time nikal gaya. Dobara photo lo.",
+              )
+            : err.message,
         tone: "error",
       });
       if (err.status === 410 || err.status === 409) {
         setResult(null);
         setStage("pick");
-        setNotice("Yeh bill ab save nahi ho sakta. Dobara photo lo.");
+        setNotice(
+          l(
+            "This bill can no longer be saved. Take the photo again.",
+            "यह बिल अब सेव नहीं हो सकता। दोबारा फ़ोटो लें।",
+            "Yeh bill ab save nahi ho sakta. Dobara photo lo.",
+          ),
+        );
       }
     }
   };
 
   const review = result?.review;
-  const verdict = review ? VERDICT_COPY[review.verdict] : null;
+  const verdict = review ? verdictCopy(l)[review.verdict] : null;
   const busy = stage === "reading" || stage === "saving";
 
   return (
     <>
       <Button variant="primary" onClick={start}>
-        Bill scan karo
+        {l("Scan a bill", "बिल स्कैन करें", "Bill scan karo")}
       </Button>
       <dialog
         ref={dlg}
@@ -148,32 +266,96 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
         }}
       >
         <h2 id={titleId} className="dlg-title">
-          Supplier bill scan
+          {l(
+            "Scan a supplier bill",
+            "सप्लायर का बिल स्कैन करें",
+            "Supplier bill scan karo",
+          )}
         </h2>
 
         {stage === "pick" || stage === "reading" ? (
           <div className="bs-pick">
-            <p className="dlg-text">Bill ki saaf photo lo. Hum padhenge, aap dekh ke accept ya reject karoge. Tab tak kuch save nahi hota.</p>
-            <Field label="Supplier" hint="Khali chhodo to bill se pehchanenge.">
+            <p className="dlg-text">
+              {l(
+                "Take a clear photo of the bill. We will read it and you accept or reject after looking. Nothing is saved until then.",
+                "बिल की साफ़ फ़ोटो लें। हम पढ़ेंगे, आप देखकर मंज़ूर या नामंज़ूर करेंगे। तब तक कुछ सेव नहीं होता।",
+                "Bill ki saaf photo lo. Hum padhenge, aap dekh ke accept ya reject karoge. Tab tak kuch save nahi hota.",
+              )}
+            </p>
+            <Field
+              label={l("Supplier", "सप्लायर", "Supplier")}
+              hint={l(
+                "Leave empty to identify from the bill.",
+                "ख़ाली छोड़ें तो बिल से पहचानेंगे।",
+                "Khali chhodo to bill se pehchanenge.",
+              )}
+            >
               <Select
                 value={vendorId}
                 onChange={(e) => setVendorId(e.target.value)}
                 disabled={busy}
-                options={[{ value: "", label: "Bill se pehchano" }, ...(vendors ?? []).map((v) => ({ value: v.id, label: v.name }))]}
+                options={[
+                  {
+                    value: "",
+                    label: l(
+                      "Identify from the bill",
+                      "बिल से पहचानें",
+                      "Bill se pehchano",
+                    ),
+                  },
+                  ...(vendors ?? []).map((v) => ({
+                    value: v.id,
+                    label: v.name,
+                  })),
+                ]}
               />
             </Field>
             <div className="bs-pickbtns">
-              <Button variant="primary" onClick={() => cam.current?.click()} disabled={busy} loading={stage === "reading"}>
-                Camera se photo lo
+              <Button
+                variant="primary"
+                onClick={() => cam.current?.click()}
+                disabled={busy}
+                loading={stage === "reading"}
+              >
+                {l(
+                  "Take a photo with the camera",
+                  "कैमरे से फ़ोटो लें",
+                  "Camera se photo lo",
+                )}
               </Button>
               <Button onClick={() => gallery.current?.click()} disabled={busy}>
-                Gallery se chuno
+                {l("Choose from gallery", "गैलरी से चुनें", "Gallery se chuno")}
               </Button>
             </div>
-            <input ref={cam} type="file" accept="image/*" capture="environment" hidden onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ""))} />
-            <input ref={gallery} type="file" accept="image/*" hidden onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ""))} />
+            <input
+              ref={cam}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              onChange={(e) => (
+                onFile(e.target.files?.[0]),
+                (e.target.value = "")
+              )}
+            />
+            <input
+              ref={gallery}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => (
+                onFile(e.target.files?.[0]),
+                (e.target.value = "")
+              )}
+            />
             <p className="bs-status" role="status" aria-live="polite">
-              {stage === "reading" ? "Bill padh rahe hain. Thoda time lagta hai..." : (notice ?? "")}
+              {stage === "reading"
+                ? l(
+                    "Reading the bill. This takes a little time...",
+                    "बिल पढ़ रहे हैं। थोड़ा समय लगता है...",
+                    "Bill padh rahe hain. Thoda time lagta hai...",
+                  )
+                : (notice ?? "")}
             </p>
           </div>
         ) : null}
@@ -194,28 +376,51 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
 
             <dl className="bs-facts">
               <div>
-                <dt>Supplier</dt>
-                <dd>{review.vendor.name ?? "Pehchana nahi"}</dd>
+                <dt>{l("Supplier", "सप्लायर", "Supplier")}</dt>
+                <dd>
+                  {review.vendor.name ??
+                    l("Not identified", "पहचाना नहीं", "Pehchana nahi")}
+                </dd>
               </div>
               <div>
-                <dt>Bill number</dt>
-                <dd>{review.invoiceNo ? `#${review.invoiceNo}` : "Nahi mila"}</dd>
+                <dt>{l("Bill number", "बिल नंबर", "Bill number")}</dt>
+                <dd>
+                  {review.invoiceNo
+                    ? `#${review.invoiceNo}`
+                    : l("Not found", "नहीं मिला", "Nahi mila")}
+                </dd>
               </div>
               <div>
-                <dt>Bill ki date</dt>
+                <dt>{l("Bill date", "बिल की तारीख़", "Bill ki date")}</dt>
                 <dd>{dayLabel(review.invoiceDate)}</dd>
               </div>
               <div>
-                <dt>Payment kab tak</dt>
+                <dt>{l("Pay by", "भुगतान कब तक", "Payment kab tak")}</dt>
                 <dd>{review.dueDate ? dayLabel(review.dueDate) : "-"}</dd>
               </div>
             </dl>
 
-            <DataTable caption="Bill ki lines" columns={COLUMNS} rows={review.lines} rowKey={(l) => `${l.printedName}-${l.qty}-${l.lineTotalPaise}-${l.unitCostPaise}`} dense />
+            <DataTable
+              caption={l("Bill lines", "बिल की लाइनें", "Bill ki lines")}
+              columns={columns(l)}
+              rows={review.lines}
+              rowKey={(r) =>
+                `${r.printedName}-${r.qty}-${r.lineTotalPaise}-${r.unitCostPaise}`
+              }
+              dense
+            />
 
             <p className="bs-sum">
-              <span>Items ka jod {rupeesExact(review.lineSumPaise)}</span>
-              <strong>Bill total {review.totalPaise === null ? "-" : rupeesExact(review.totalPaise)}</strong>
+              <span>
+                {l("Items total", "आइटम का जोड़", "Items ka jod")}{" "}
+                {rupeesExact(review.lineSumPaise)}
+              </span>
+              <strong>
+                {l("Bill total", "बिल का कुल", "Bill total")}{" "}
+                {review.totalPaise === null
+                  ? "-"
+                  : rupeesExact(review.totalPaise)}
+              </strong>
             </p>
           </div>
         ) : null}
@@ -225,25 +430,37 @@ export function BillScan({ vendors, onDone }: { vendors: { id: string; name: str
             review?.verdict === "retake" ? (
               <>
                 <Button variant="quiet" onClick={close} disabled={busy}>
-                  Band karo
+                  {l("Close", "बंद करें", "Band karo")}
                 </Button>
                 <Button variant="primary" onClick={retake}>
-                  Dobara photo lo
+                  {l("Take photo again", "दोबारा फ़ोटो लें", "Dobara photo lo")}
                 </Button>
               </>
             ) : (
               <>
                 <Button onClick={retake} disabled={busy}>
-                  Galat hai, dobara photo lo
+                  {l(
+                    "Wrong, take photo again",
+                    "ग़लत है, दोबारा फ़ोटो लें",
+                    "Galat hai, dobara photo lo",
+                  )}
                 </Button>
-                <Button variant="primary" onClick={accept} loading={stage === "saving"}>
-                  Sahi hai, stock add karo
+                <Button
+                  variant="primary"
+                  onClick={accept}
+                  loading={stage === "saving"}
+                >
+                  {l(
+                    "Correct, add the stock",
+                    "सही है, स्टॉक जोड़ें",
+                    "Sahi hai, stock add karo",
+                  )}
                 </Button>
               </>
             )
           ) : (
             <Button variant="quiet" onClick={close} disabled={busy}>
-              Band karo
+              {l("Close", "बंद करें", "Band karo")}
             </Button>
           )}
         </div>

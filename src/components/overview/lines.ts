@@ -1,3 +1,4 @@
+import type { L } from "@/lib/ui/lang";
 import { num, rupees, rupeesExact } from "@/lib/format";
 import type { RozmelRow } from "./types";
 
@@ -9,17 +10,17 @@ export function bookMoney(paise: number): string {
 const qtyText = (q: number) => num(q, q % 1 ? 1 : 0);
 
 /** "Sugar 1kg ×3, Raisins 250g". A matched-but-unsure line says so. */
-export function itemsText(items: RozmelRow["items"]): string {
-  return items.map((i) => `${i.name}${i.qty !== 1 ? ` ×${qtyText(i.qty)}` : ""}${i.confidence === "probable" ? " (shayad)" : ""}`).join(", ");
+export function itemsText(items: RozmelRow["items"], l: L): string {
+  return items.map((i) => `${i.name}${i.qty !== 1 ? ` ×${qtyText(i.qty)}` : ""}${i.confidence === "probable" ? ` (${l("maybe", "शायद", "shayad")})` : ""}`).join(", ");
 }
 
 export const METHOD_WORD: Record<RozmelRow["method"], string> = { upi: "UPI", cash: "Cash", card: "Card" };
 
-const SOURCE_WORD: Partial<Record<RozmelRow["source"], string>> = { paytm: "Paytm", soundbox: "Soundbox", manual: "Haath se likha" };
+const sourceWord = (l: L): Partial<Record<RozmelRow["source"], string>> => ({ paytm: "Paytm", soundbox: l("Soundbox", "साउंडबॉक्स", "Soundbox"), manual: l("Written by hand", "हाथ से लिखा", "Haath se likha") });
 
 /** "Paytm, UTR …5311": where the line came from. */
-export function sourceText(row: RozmelRow): string {
-  const parts = [SOURCE_WORD[row.source], row.utr ? `UTR …${row.utr.slice(-4)}` : null].filter(Boolean);
+export function sourceText(row: RozmelRow, l: L): string {
+  const parts = [sourceWord(l)[row.source], row.utr ? `UTR …${row.utr.slice(-4)}` : null].filter(Boolean);
   return parts.join(", ");
 }
 

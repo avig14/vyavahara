@@ -44,6 +44,12 @@ export interface PurchaseOrder {
 export interface VendorsPayload {
   vendors: Vendor[];
   payables: Payable[];
+  /** which supplier sells which product, at the last bill rate */
+  vendorProducts: {
+    vendorId: string;
+    productId: string;
+    lastCostPaise: number;
+  }[];
   priceChanges: PriceChange[];
   purchaseOrders: PurchaseOrder[];
   recommendations: Recommendation[];

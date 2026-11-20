@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useL } from "@/lib/ui/lang";
 import { CloseIcon } from "./icons";
 
 export type ToastTone = "neutral" | "success" | "error";
@@ -34,6 +35,7 @@ export function useToast(): ToastApi {
 }
 
 function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) => void }) {
+  const l = useL();
   const { id, title, detail, tone = "neutral", action, duration } = item;
   const ms = duration ?? (action || tone === "error" ? 8000 : 5000);
   const hold = useRef(false);
@@ -79,7 +81,7 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
       ) : (
         <span />
       )}
-      <button type="button" className="toast-x" aria-label="Dismiss" onClick={() => onDismiss(id)}>
+      <button type="button" className="toast-x" aria-label={l("Dismiss", "हटाएँ", "Hatao")} onClick={() => onDismiss(id)}>
         <CloseIcon size={16} />
       </button>
     </div>

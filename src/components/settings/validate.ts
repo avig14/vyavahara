@@ -37,7 +37,9 @@ export function formatValue(def: FieldDef, v: unknown): string {
   switch (def.kind) {
     case "int":
     case "decimal":
-      return typeof v === "number" ? withUnit(def, num(v, def.decimals ?? 0)) : "none";
+      return typeof v === "number"
+        ? withUnit(def, num(v, def.decimals ?? 0))
+        : "none";
     case "fraction":
       return typeof v === "number" ? `${num(toPct(v), 1)}%` : "none";
     case "paise":
@@ -51,9 +53,15 @@ export function formatValue(def: FieldDef, v: unknown): string {
     case "select":
       return typeof v === "string" ? (def.optionLabels?.[v] ?? v) : "none";
     case "recurring":
-      return Array.isArray(v) ? (v.length === 0 ? "No costs listed" : `${v.length} ${v.length === 1 ? "cost" : "costs"}`) : "Learned from expense history";
+      return Array.isArray(v)
+        ? v.length === 0
+          ? "No costs listed"
+          : `${v.length} ${v.length === 1 ? "cost" : "costs"}`
+        : "Learned from expense history";
     case "festivals":
-      return Array.isArray(v) && v.length > 0 ? `${v.length} ${v.length === 1 ? "festival" : "festivals"}` : "None added";
+      return Array.isArray(v) && v.length > 0
+        ? `${v.length} ${v.length === 1 ? "festival" : "festivals"}`
+        : "None added";
   }
 }
 
@@ -62,26 +70,45 @@ export function rangeText(def: FieldDef): string {
   const b = boundsFor(def.path);
   if (def.kind === "int" || def.kind === "decimal" || def.kind === "fraction") {
     if (b.min === undefined || b.max === undefined) return "";
-    const lo = def.kind === "fraction" ? num(toPct(b.min), 1) : num(b.min, def.decimals ?? 0);
-    const hi = def.kind === "fraction" ? num(toPct(b.max), 1) : num(b.max, def.decimals ?? 0);
+    const lo =
+      def.kind === "fraction"
+        ? num(toPct(b.min), 1)
+        : num(b.min, def.decimals ?? 0);
+    const hi =
+      def.kind === "fraction"
+        ? num(toPct(b.max), 1)
+        : num(b.max, def.decimals ?? 0);
     return `Allowed ${lo} to ${hi}.`;
   }
-  if (def.kind === "text" && b.maxLength !== undefined) return `Up to ${b.maxLength} characters.`;
+  if (def.kind === "text" && b.maxLength !== undefined)
+    return `Up to ${b.maxLength} characters.`;
   return "";
 }
 
 /** The helper line under a control when there is no error: the default, then the range. */
 export function hintFor(def: FieldDef, defaultValue: unknown): string {
-  if (def.kind === "recurring" || def.kind === "festivals") return `Default: ${formatValue(def, defaultValue)}.`;
-  return [`Default ${formatValue(def, defaultValue)}.`, rangeText(def)].filter(Boolean).join(" ");
+  if (def.kind === "recurring" || def.kind === "festivals")
+    return `Default: ${formatValue(def, defaultValue)}.`;
+  return [`Default ${formatValue(def, defaultValue)}.`, rangeText(def)]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function numberError(def: FieldDef, v: unknown): string | null {
   if (typeof v !== "number" || Number.isNaN(v)) return "Enter a number.";
   const b = boundsFor(def.path);
-  if ((b.int || def.kind === "int" || def.kind === "paise" || def.kind === "hour") && !Number.isInteger(v)) return "Use a whole number.";
-  if (b.min !== undefined && v < b.min) return `Lowest allowed is ${formatValue(def, b.min)}.`;
-  if (b.max !== undefined && v > b.max) return `Highest allowed is ${formatValue(def, b.max)}.`;
+  if (
+    (b.int ||
+      def.kind === "int" ||
+      def.kind === "paise" ||
+      def.kind === "hour") &&
+    !Number.isInteger(v)
+  )
+    return "Use a whole number.";
+  if (b.min !== undefined && v < b.min)
+    return `Lowest allowed is ${formatValue(def, b.min)}.`;
+  if (b.max !== undefined && v > b.max)
+    return `Highest allowed is ${formatValue(def, b.max)}.`;
   return null;
 }
 
@@ -95,13 +122,17 @@ function checkField(def: FieldDef, v: unknown): string | null {
       return numberError(def, v);
     case "text": {
       const b = boundsFor(def.path);
-      if (typeof v !== "string" || v.length < (b.minLength ?? 1)) return "Enter a name.";
-      if (b.maxLength !== undefined && v.length > b.maxLength) return `Keep it to ${b.maxLength} characters or fewer.`;
+      if (typeof v !== "string" || v.length < (b.minLength ?? 1))
+        return "Enter a name.";
+      if (b.maxLength !== undefined && v.length > b.maxLength)
+        return `Keep it to ${b.maxLength} characters or fewer.`;
       return null;
     }
     case "select": {
       const b = boundsFor(def.path);
-      return typeof v === "string" && (!b.options || b.options.includes(v)) ? null : "Pick one of the options.";
+      return typeof v === "string" && (!b.options || b.options.includes(v))
+        ? null
+        : "Pick one of the options.";
     }
     default:
       return null;
@@ -114,13 +145,29 @@ function checkRecurring(base: string, v: unknown, out: Errors): void {
   const day = boundsFor(`${base}.*.dayOfMonth`);
   v.forEach((row: Partial<RecurringCost>, i) => {
     const k = `${base}.${i}`;
-    if (typeof row.label !== "string" || row.label.length < (label.minLength ?? 1)) out[`${k}.label`] = "Name this cost.";
-    else if (label.maxLength !== undefined && row.label.length > label.maxLength) out[`${k}.label`] = `Keep it to ${label.maxLength} characters or fewer.`;
-    if (typeof row.amountPaise !== "number" || Number.isNaN(row.amountPaise)) out[`${k}.amountPaise`] = "Enter an amount.";
-    else if (row.amountPaise < 0) out[`${k}.amountPaise`] = "Cannot be below ₹0.";
-    if (typeof row.dayOfMonth !== "number" || Number.isNaN(row.dayOfMonth)) out[`${k}.dayOfMonth`] = "Enter a day.";
-    else if (!Number.isInteger(row.dayOfMonth) || (day.min !== undefined && row.dayOfMonth < day.min) || (day.max !== undefined && row.dayOfMonth > day.max))
-      out[`${k}.dayOfMonth`] = `Pick a day from ${day.min ?? 1} to ${day.max ?? 31}.`;
+    if (
+      typeof row.label !== "string" ||
+      row.label.length < (label.minLength ?? 1)
+    )
+      out[`${k}.label`] = "Name this cost.";
+    else if (
+      label.maxLength !== undefined &&
+      row.label.length > label.maxLength
+    )
+      out[`${k}.label`] = `Keep it to ${label.maxLength} characters or fewer.`;
+    if (typeof row.amountPaise !== "number" || Number.isNaN(row.amountPaise))
+      out[`${k}.amountPaise`] = "Enter an amount.";
+    else if (row.amountPaise < 0)
+      out[`${k}.amountPaise`] = "Cannot be below ₹0.";
+    if (typeof row.dayOfMonth !== "number" || Number.isNaN(row.dayOfMonth))
+      out[`${k}.dayOfMonth`] = "Enter a day.";
+    else if (
+      !Number.isInteger(row.dayOfMonth) ||
+      (day.min !== undefined && row.dayOfMonth < day.min) ||
+      (day.max !== undefined && row.dayOfMonth > day.max)
+    )
+      out[`${k}.dayOfMonth`] =
+        `Pick a day from ${day.min ?? 1} to ${day.max ?? 31}.`;
   });
 }
 
@@ -136,11 +183,19 @@ function checkFestivals(base: string, v: unknown, out: Errors): void {
   const cats = boundsFor(`${base}.*.categories`);
   v.forEach((row: Partial<Festival>, i) => {
     const k = `${base}.${i}`;
-    if (typeof row.name !== "string" || row.name.length < (name.minLength ?? 1)) out[`${k}.name`] = "Name this festival.";
-    else if (name.maxLength !== undefined && row.name.length > name.maxLength) out[`${k}.name`] = `Keep it to ${name.maxLength} characters or fewer.`;
-    if (typeof row.date !== "string" || !isRealDate(row.date)) out[`${k}.date`] = "Pick a date.";
-    if (!Array.isArray(row.categories)) out[`${k}.categories`] = "List the item categories.";
-    else if (cats.maxItems !== undefined && row.categories.length > cats.maxItems) out[`${k}.categories`] = `List at most ${cats.maxItems} categories.`;
+    if (typeof row.name !== "string" || row.name.length < (name.minLength ?? 1))
+      out[`${k}.name`] = "Name this festival.";
+    else if (name.maxLength !== undefined && row.name.length > name.maxLength)
+      out[`${k}.name`] = `Keep it to ${name.maxLength} characters or fewer.`;
+    if (typeof row.date !== "string" || !isRealDate(row.date))
+      out[`${k}.date`] = "Pick a date.";
+    if (!Array.isArray(row.categories))
+      out[`${k}.categories`] = "List the item categories.";
+    else if (
+      cats.maxItems !== undefined &&
+      row.categories.length > cats.maxItems
+    )
+      out[`${k}.categories`] = `List at most ${cats.maxItems} categories.`;
   });
 }
 
@@ -156,10 +211,22 @@ export function validate(draft: Tree): Errors {
   }
   const green = getAt(draft, "khata.greenMax");
   const amber = getAt(draft, "khata.amberMax");
-  if (typeof green === "number" && typeof amber === "number" && green >= amber && !out["khata.amberMax"]) out["khata.amberMax"] = `Must be above the green limit (${num(green)}).`;
+  if (
+    typeof green === "number" &&
+    typeof amber === "number" &&
+    green >= amber &&
+    !out["khata.amberMax"]
+  )
+    out["khata.amberMax"] = `Must be above the green limit (${num(green)}).`;
   const from = getAt(draft, "alerts.sendFromHour");
   const until = getAt(draft, "alerts.sendUntilHour");
-  if (typeof from === "number" && typeof until === "number" && from >= until && !out["alerts.sendUntilHour"]) out["alerts.sendUntilHour"] = "Must be later than the start hour.";
+  if (
+    typeof from === "number" &&
+    typeof until === "number" &&
+    from >= until &&
+    !out["alerts.sendUntilHour"]
+  )
+    out["alerts.sendUntilHour"] = "Must be later than the start hour.";
   return out;
 }
 

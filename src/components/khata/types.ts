@@ -1,11 +1,17 @@
-import type { Ageing, KhataAccount, KhataOverview } from "@/lib/analytics/khata-risk";
+import type {
+  Ageing,
+  KhataAccount,
+  KhataOverview,
+} from "@/lib/analytics/khata-risk";
 import type { Customer, KhataEntry } from "@/lib/domain";
 
 /** JSON turns Date into an ISO string. */
 type Json<T, K extends keyof T> = Omit<T, K> & { [P in K]: string | null };
 
 export type AccountJson = Json<KhataAccount, "lastCreditAt" | "lastPaymentAt">;
-export type OverviewJson = Omit<KhataOverview, "accounts"> & { accounts: AccountJson[] };
+export type OverviewJson = Omit<KhataOverview, "accounts"> & {
+  accounts: AccountJson[];
+};
 
 /** GET /api/dashboard/khata */
 export interface KhataResponse {

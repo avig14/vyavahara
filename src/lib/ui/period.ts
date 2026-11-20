@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { addDays, istDayKey, istDayStart, isPeriodName, type PeriodName } from "@/lib/time";
 import { useQueryParams } from "./url-state";
+import { useLang } from "./lang";
+import type { Lang } from "./i18n";
 
 /** Same names as `PeriodName` in `src/lib/time.ts`; labels are the ones `resolvePeriod` prints, minus the date. */
 export const PERIOD_OPTIONS: readonly { name: PeriodName; label: string }[] = [
@@ -16,6 +18,23 @@ export const PERIOD_OPTIONS: readonly { name: PeriodName; label: string }[] = [
   { name: "last_30_days", label: "Pichhle 30 din" },
   { name: "custom", label: "Custom" },
 ];
+
+const PERIOD_TEXT: Record<PeriodName, { en: string; hi: string }> = {
+  today: { en: "Today", hi: "आज" },
+  yesterday: { en: "Yesterday", hi: "कल" },
+  this_week: { en: "This week", hi: "इस हफ़्ते" },
+  last_week: { en: "Last week", hi: "पिछला हफ़्ता" },
+  this_month: { en: "This month", hi: "इस महीने" },
+  last_month: { en: "Last month", hi: "पिछला महीना" },
+  last_7_days: { en: "Last 7 days", hi: "पिछले 7 दिन" },
+  last_30_days: { en: "Last 30 days", hi: "पिछले 30 दिन" },
+  custom: { en: "Custom", hi: "अपनी तारीख़ें" },
+};
+
+/** Period name in the chosen language; Hinglish is the original label. */
+export function periodLabelFor(name: PeriodName, lang: Lang): string {
+  return lang === "hing" ? periodLabel(name) : PERIOD_TEXT[name][lang];
+}
 
 export const DEFAULT_PERIOD: PeriodName = "today";
 
@@ -62,6 +81,7 @@ export interface UsePeriod extends PeriodState {
 /** Period in the URL (`?period=`, plus `from`/`to` for custom). Absent means today. */
 export function usePeriod(): UsePeriod {
   const { get, patch } = useQueryParams();
+  const { lang } = useLang();
   const rawName = get("period");
   const rawFrom = get("from");
   const rawTo = get("to");
@@ -75,7 +95,7 @@ export function usePeriod(): UsePeriod {
 
   return {
     ...state,
-    label: periodLabel(state.name),
+    label: periodLabelFor(state.name, lang),
     apiQuery: periodApiQuery(state),
     setPeriod: (name) => {
       if (name === "custom") {

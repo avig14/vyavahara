@@ -106,7 +106,6 @@ textarea.ctl { min-height: 6rem; resize: vertical; }
 .tbl tfoot td { border-top: 1px solid var(--color-rule-strong); border-bottom: 0; font-weight: 600; }
 .tbl-wrap[data-sticky] .tbl thead th { position: sticky; top: var(--sticky-top, var(--topbar-h)); z-index: var(--z-sticky); background: var(--color-paper); }
 .tbl tr[data-selected] td { background: var(--color-paper-3); }
-.tbl tr[data-selected] td:first-child { box-shadow: inset 3px 0 0 var(--color-accent); }
 .tbl tr[data-selectable] { cursor: pointer; }
 @media (hover: hover) { .tbl tr[data-selectable]:not([data-selected]):hover td { background: var(--color-paper-3); } }
 .tbl-rowbtn { padding: 0; border: 0; background: none; color: inherit; font-weight: 600; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--color-rule-strong); text-underline-offset: 0.2em; }
@@ -124,7 +123,7 @@ textarea.ctl { min-height: 6rem; resize: vertical; }
   .tbl[data-restack] td[data-primary]::before { content: none; }
   .tbl[data-restack] td[data-nolabel]::before { content: none; }
   .tbl[data-restack] td[data-nolabel] { display: block; }
-  .tbl[data-restack] tr[data-selected] { background: var(--color-paper-3); box-shadow: inset 3px 0 0 var(--color-accent); }
+  .tbl[data-restack] tr[data-selected] { background: var(--color-paper-3); }
   .tbl[data-restack] tr[data-selected] td { background: transparent; box-shadow: none; }
   .tbl[data-restack] tfoot td { border: 0; }
   .tbl[data-restack] td { padding-inline: var(--space-sm); }

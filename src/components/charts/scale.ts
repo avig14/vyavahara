@@ -4,7 +4,9 @@ export function niceMax(max: number, ticks = 4): { max: number; step: number } {
   const raw = max / ticks;
   const mag = 10 ** Math.floor(Math.log10(raw));
   const norm = raw / mag;
-  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  const step =
+    (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) *
+    mag;
   return { max: step * Math.ceil(max / step), step };
 }
 
@@ -15,7 +17,11 @@ export function tickValues(max: number, step: number): number[] {
 }
 
 /** Indices to label on a category axis so labels never collide: every `k`-th, plus the last when there is room. */
-export function labelIndices(n: number, width: number, minGap: number): Set<number> {
+export function labelIndices(
+  n: number,
+  width: number,
+  minGap: number,
+): Set<number> {
   const out = new Set<number>();
   if (n === 0) return out;
   const fit = Math.max(1, Math.floor(width / minGap));
@@ -30,7 +36,9 @@ export function labelIndices(n: number, width: number, minGap: number): Set<numb
 }
 
 export function linePath(pts: readonly (readonly [number, number])[]): string {
-  return pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  return pts
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`)
+    .join(" ");
 }
 
 /** Compact tick label: 12k, 1.2L (lakh), 3Cr is how an owner reads rupees, but units are the caller's job; this is plain. */

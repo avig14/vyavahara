@@ -17,6 +17,7 @@ export const GET = () =>
     return json({
       vendors: d.snap.vendors,
       payables: openPayables(d.snap),
+      vendorProducts: d.snap.vendorProducts.map((x) => ({ vendorId: x.vendorId, productId: x.productId, lastCostPaise: x.lastCostPaise })),
       priceChanges,
       purchaseOrders: await listPurchaseOrders(c.db, c.merchantId),
       recommendations: d.recs.filter((r) => r.module === "vendors"),

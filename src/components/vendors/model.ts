@@ -1,4 +1,10 @@
-import type { Payable, PriceChange, Recommendation, Vendor, VendorsPayload } from "./types";
+import type {
+  Payable,
+  PriceChange,
+  Recommendation,
+  Vendor,
+  VendorsPayload,
+} from "./types";
 
 export interface SupplierRow {
   vendor: Vendor;
@@ -13,9 +19,18 @@ export interface SupplierRow {
 
 /** Join vendors with what they are owed and their biggest rate change. Sums only; no thresholds. */
 export function buildSuppliers(d: VendorsPayload): SupplierRow[] {
-  const flagged = new Set(d.recommendations.filter((r) => r.type === "PAYABLE_DUE").map((r) => r.id.slice(r.id.indexOf(":") + 1)));
+  const flagged = new Set(
+    d.recommendations
+      .filter((r) => r.type === "PAYABLE_DUE")
+      .map((r) => r.id.slice(r.id.indexOf(":") + 1)),
+  );
   const rows = d.vendors.map<SupplierRow>((vendor) => {
-    const bills = d.payables.filter((p) => p.vendorId === vendor.id).sort((a, b) => a.dueDate.localeCompare(b.dueDate) || b.amountPaise - a.amountPaise);
+    const bills = d.payables
+      .filter((p) => p.vendorId === vendor.id)
+      .sort(
+        (a, b) =>
+          a.dueDate.localeCompare(b.dueDate) || b.amountPaise - a.amountPaise,
+      );
     const next = bills[0] ?? null;
     return {
       vendor,
@@ -28,13 +43,20 @@ export function buildSuppliers(d: VendorsPayload): SupplierRow[] {
     };
   });
   return rows.sort((a, b) => {
-    if (a.next && b.next) return a.next.dueDate.localeCompare(b.next.dueDate) || b.outstandingPaise - a.outstandingPaise;
+    if (a.next && b.next)
+      return (
+        a.next.dueDate.localeCompare(b.next.dueDate) ||
+        b.outstandingPaise - a.outstandingPaise
+      );
     if (a.next) return -1;
     if (b.next) return 1;
     return a.vendor.name.localeCompare(b.vendor.name);
   });
 }
 
-export function recsFor(d: VendorsPayload, predicate: (r: Recommendation) => boolean): Recommendation[] {
+export function recsFor(
+  d: VendorsPayload,
+  predicate: (r: Recommendation) => boolean,
+): Recommendation[] {
   return d.recommendations.filter(predicate);
 }
