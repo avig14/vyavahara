@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { useQueryParams } from "@/lib/ui/url-state";
-import { LogoMark } from "@/components/brand/logo-mark";
 import { LangToggle } from "@/lib/ui/lang";
 import { NAV_ITEMS, isCurrent } from "./nav";
 
