@@ -63,8 +63,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={lang === "hi" ? "hi" : lang === "hing" ? "en-IN" : "en"}
       className={`${interPaytm.variable} ${inter.variable} ${deva.variable}`}
+      suppressHydrationWarning
     >
-      <body>
+      {/* Browser extensions (Berrycast, Grammarly, Bitdefender) stamp attributes on <html> and <body> before React loads. suppressHydrationWarning covers just those two elements, not their children. */}
+      <body suppressHydrationWarning>
         {process.env.NODE_ENV !== "production" ? <Script id="strip-extension-attrs" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRS }} /> : null}
         <LangProvider initial={lang}>{children}</LangProvider>
       </body>
