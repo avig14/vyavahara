@@ -13,6 +13,8 @@ import { mintReportLink, baseUrl } from "../server/artifacts";
 import { rupees } from "../format";
 import { sendLongText, WaError, type WaConfig } from "./cloud";
 import { stockText, whatsappDigest } from "./digest";
+import { customerReportText, recommendationReportText, salesReportText, vendorReportText } from "./reports";
+import type { PeriodName } from "../time";
 
 export const MENU = [
   "*Namaste! Main Vyavahāra hoon* 🙏",
@@ -22,13 +24,25 @@ export const MENU = [
   "3️⃣ Udhaar (khata)",
   "4️⃣ Supplier payments",
   "5️⃣ PDF report",
+  "6️⃣ Sales report (_6 week_, _6 month_ bhi)",
+  "7️⃣ Customer report",
+  "8️⃣ Supplier report",
+  "9️⃣ Suggestions (kya karein)",
   "",
   "Ya seedha poochho, jaise _\"aaj kitni sale hui?\"_",
 ].join("\n");
 
 const GREETING = /^(hi|hii+|hello|hey|namaste|namaskar|menu|help|start|0)\b/i;
 
-export type Intent = "menu" | "report" | "stock" | "khata" | "suppliers" | "pdf" | "agent";
+export type Intent = "menu" | "report" | "stock" | "khata" | "suppliers" | "pdf" | "sales" | "customers" | "vendors" | "recs" | "agent";
+
+/** "6 week", "sales month", "bikri hafta" → which period the sales report covers (default today). */
+export function salesPeriod(raw: string | null): PeriodName {
+  const t = (raw ?? "").toLowerCase();
+  if (/month|mahin/.test(t)) return "this_month";
+  if (/week|hafta|hafte/.test(t)) return "this_week";
+  return "today";
+}
 
 /** Pure: which canned answer (if any) does this message ask for. */
 export function intentOf(raw: string | null, reply: string | null = null): Intent {
@@ -40,6 +54,10 @@ export function intentOf(raw: string | null, reply: string | null = null): Inten
   if (t === "3" || t === "khata" || t === "udhaar") return "khata";
   if (t === "4" || t === "supplier" || t === "suppliers") return "suppliers";
   if (t === "5" || t === "pdf") return "pdf";
+  if (/^(6|sales?|bikri)( report)?( (week|hafta|hafte|month|mahina|mahine|today|aaj))?$/.test(t) || /^6 (week|month)$/.test(t)) return "sales";
+  if (t === "7" || /^(customers?|grahak)( report)?$/.test(t)) return "customers";
+  if (t === "8" || /^(vendors?|suppliers?) report$/.test(t)) return "vendors";
+  if (t === "9" || /^(recommendations?|suggestions?|salah|sujhav|advice)( report)?$/.test(t)) return "recs";
   return "agent";
 }
 
@@ -65,6 +83,10 @@ export async function answerFor(db: Db, merchantId: string, text: string | null,
   const snap = await loadSnapshot(db, merchantId, { now });
   const ctx = buildContext(snap);
   if (intent === "stock") return stockText(snap, ctx);
+  if (intent === "sales") return salesReportText(snap, salesPeriod(reply ?? text), ctx);
+  if (intent === "customers") return customerReportText(snap);
+  if (intent === "vendors") return vendorReportText(snap, ctx);
+  if (intent === "recs") return recommendationReportText(snap, ctx);
   const rep = buildReport(snap, { period: "today", ctx });
   if (intent === "khata") {
     const k = rep.khata;

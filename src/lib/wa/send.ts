@@ -6,6 +6,8 @@ import type { Db } from "../db/client";
 import { getWaState, loadSnapshot, markWaFailed, markWaSent, startWaMessage } from "../db/queries";
 import { maskPhone, sendLongText, sendTemplate, WaError, type WaConfig } from "./cloud";
 import { whatsappDigest } from "./digest";
+import { reportTextFor, type ReportKind } from "./reports";
+import type { PeriodName } from "../time";
 
 /** WhatsApp only allows free text within 24 hours of the owner's last message to us. */
 export const WINDOW_MS = 24 * 3_600_000;
@@ -21,7 +23,7 @@ export type SendOutcome =
   | { ok: true; kind: "template"; to: string; messageId: string; notice: string }
   | { ok: false; reason: "no_number" | "wa_error"; errorKind?: WaError["kind"]; message: string; to?: string; messageId?: string };
 
-export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfig, opts: { now?: Date; fetch?: typeof fetch } = {}): Promise<SendOutcome> {
+export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfig, opts: { now?: Date; fetch?: typeof fetch; kind?: ReportKind; period?: PeriodName } = {}): Promise<SendOutcome> {
   const now = opts.now ?? new Date();
   const f = opts.fetch ?? fetch;
   const state = await getWaState(db, merchantId);
@@ -30,7 +32,7 @@ export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfi
   const shown = maskPhone(to);
 
   const snap = await loadSnapshot(db, merchantId, { now });
-  const text = whatsappDigest(snap).text;
+  const text = !opts.kind || opts.kind === "daily" ? whatsappDigest(snap).text : reportTextFor(snap, opts.kind, opts.period);
   const id = await startWaMessage(db, merchantId, "report", text.split("\n")[0]);
   try {
     const r = await sendLongText(to, text, cfg, f);

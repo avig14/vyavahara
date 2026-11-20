@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge, Button, Field, Input, useToast, type BadgeTone } from "@/components/ui";
+import { Badge, Button, Field, Input, Select, useToast, type BadgeTone } from "@/components/ui";
 import { postJson, toApiError, useApi } from "@/lib/ui/api";
 import { istStamp } from "@/lib/ui/dates";
 
@@ -40,6 +40,8 @@ export function WhatsAppCard() {
   const toast = useToast();
   const state = useApi<WaStatusPayload>("/api/whatsapp/status");
   const { data, refetch } = state;
+  const [kind, setKind] = useState("daily");
+  const [period, setPeriod] = useState("today");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -72,7 +74,7 @@ export function WhatsAppCard() {
     setSending(true);
     setNotice(null);
     try {
-      const r = await postJson<SendResult>("/api/whatsapp/send-report");
+      const r = await postJson<SendResult>("/api/whatsapp/send-report", { kind, period });
       if (r.kind === "template") {
         setNotice(r.notice ?? null);
         toast.push({ title: "Report abhi nahi gaya", detail: r.notice, tone: "neutral" });
@@ -96,9 +98,35 @@ export function WhatsAppCard() {
     <section className="wa-card" aria-labelledby="wa-title">
       <div className="wa-head">
         <h2 id="wa-title">WhatsApp par report</h2>
-        <Button variant="primary" onClick={sendReport} loading={sending} disabled={!canSend}>
-          Send Report on WhatsApp
-        </Button>
+        <div className="wa-send">
+          <Select
+            aria-label="Kaun sa report"
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+            options={[
+              { value: "daily", label: "Aaj ka poora report" },
+              { value: "sales", label: "Sales report" },
+              { value: "customers", label: "Customer report" },
+              { value: "vendors", label: "Supplier report" },
+              { value: "recommendations", label: "Suggestions report" },
+            ]}
+          />
+          {kind === "sales" ? (
+            <Select
+              aria-label="Kis period ka"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              options={[
+                { value: "today", label: "Aaj" },
+                { value: "this_week", label: "Is hafte" },
+                { value: "this_month", label: "Is mahine" },
+              ]}
+            />
+          ) : null}
+          <Button variant="primary" onClick={sendReport} loading={sending} disabled={!canSend}>
+            Send on WhatsApp
+          </Button>
+        </div>
       </div>
 
       {!data && !state.error ? <p className="wa-note">Check kar rahe hain…</p> : null}
