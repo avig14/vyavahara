@@ -82,3 +82,26 @@ describe("whatsapp wiring", () => {
     expect(reportTextFor(snap, "recommendations")).toContain("Suggestions report");
   });
 });
+
+import { formatWa, tokenizeWa } from "./format-wa";
+describe("whatsapp formatting", () => {
+  it("turns *bold*, _italic_ and links into tokens, never HTML", () => {
+    expect(tokenizeWa("Sale *₹250* ho gayi _aaj_ https://x.test/a")).toEqual([
+      { kind: "text", text: "Sale " },
+      { kind: "bold", text: "₹250" },
+      { kind: "text", text: " ho gayi " },
+      { kind: "italic", text: "aaj" },
+      { kind: "text", text: " " },
+      { kind: "link", text: "https://x.test/a" },
+    ]);
+    expect(tokenizeWa("<b>x</b>")).toEqual([{ kind: "text", text: "<b>x</b>" }]);
+  });
+  it("keeps blank lines and reads our real reports without leftovers", () => {
+    const t = formatWa("a\n\n*b*");
+    expect(t).toHaveLength(3);
+    expect(t[1]).toEqual([]);
+    const all = formatWa(salesReportText(snap, "today")).flat();
+    expect(all.some((x) => x.kind === "bold")).toBe(true);
+    expect(all.filter((x) => x.kind === "text").every((x) => !/\*[^*\s][^*]*\*/.test(x.text))).toBe(true);
+  });
+});

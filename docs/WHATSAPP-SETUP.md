@@ -1,5 +1,7 @@
 # WhatsApp setup (Meta Cloud API, free test number)
 
+> **No WhatsApp account yet? Use the preview.** `/dashboard/whatsapp` is a WhatsApp-style chat that runs the same router as the bot (menu 1-9, sales/customer/supplier/suggestions reports, the agent) against live data. Nothing is sent to Meta, so it needs no credentials. `POST /api/whatsapp/simulate {text}` is the route behind it.
+
 Vyavahāra talks to WhatsApp through Meta's official Cloud API. No Twilio, no paid number, no WhatsApp Web automation.
 Cost for the demo: zero. The test number can message up to 5 recipient numbers.
 

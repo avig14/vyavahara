@@ -1,0 +1,32 @@
+/* ---- WhatsApp preview (simulated chat, same router as the bot) ---- */
+.wsim { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: var(--space-xl); align-items: start; }
+.wsim-phone { display: flex; flex-direction: column; height: min(44rem, calc(100dvh - 12rem)); min-height: 28rem; border: 2px solid var(--color-navy); border-radius: 1.25rem; overflow: hidden; background: #efeae2; }
+.wsim-head { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); background: #075e54; color: #fff; }
+.wsim-head b { display: block; font-size: var(--text-md); }
+.wsim-head small { opacity: 0.8; font-size: var(--text-xs, 0.75rem); }
+.wsim-avatar { display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 50%; background: #fff; color: #075e54; font-weight: 800; }
+.wsim-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding: var(--space-sm); }
+.wsim-empty { margin: auto; padding: var(--space-md); text-align: center; color: var(--color-muted); font-size: var(--text-sm); }
+.wsim-row { display: flex; }
+.wsim-me { justify-content: flex-end; }
+.wsim-bubble { position: relative; max-inline-size: 85%; padding: 0.4rem 0.6rem 1.1rem; border-radius: 0.6rem; background: #fff; box-shadow: 0 1px 1px rgb(0 0 0 / 0.12); font-size: var(--text-sm); line-height: 1.4; overflow-wrap: anywhere; }
+.wsim-me .wsim-bubble { background: #d9fdd3; }
+.wsim-bubble p { margin: 0; }
+.wsim-bubble a { color: #0b5cad; text-decoration: underline; }
+.wsim-time { position: absolute; inset-inline-end: 0.5rem; inset-block-end: 0.2rem; font-size: 0.65rem; color: #667781; }
+.wsim-typing { display: flex; gap: 0.25rem; padding: 0.7rem 0.8rem; }
+.wsim-typing span { inline-size: 0.4rem; block-size: 0.4rem; border-radius: 50%; background: #8696a0; animation: wsim-dot 1s infinite ease-in-out; }
+.wsim-typing span:nth-child(2) { animation-delay: 0.15s; }
+.wsim-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes wsim-dot { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .wsim-typing span { animation: none; opacity: 0.6; } }
+.wsim-error { margin: 0; padding: var(--space-2xs) var(--space-sm); background: #fde8e8; color: var(--color-error); font-size: var(--text-sm); }
+.wsim-quick { display: flex; gap: 0.35rem; overflow-x: auto; padding: var(--space-2xs) var(--space-sm); background: #f0f2f5; }
+.wsim-quick button { flex: none; padding: 0.3rem 0.7rem; border: 1px solid #c5ccd3; border-radius: 999px; background: #fff; color: var(--color-navy); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.wsim-quick button:disabled { opacity: 0.5; cursor: default; }
+.wsim-form { display: flex; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); background: #f0f2f5; }
+.wsim-form input { flex: 1; min-inline-size: 0; padding: 0.5rem 0.9rem; border: 1px solid #c5ccd3; border-radius: 999px; font: inherit; }
+.wsim-help h2 { font-size: var(--text-md); font-weight: 700; margin-bottom: var(--space-xs); }
+.wsim-help ul { margin: 0 0 var(--space-sm); padding-left: var(--space-md); display: grid; gap: var(--space-2xs); }
+.wsim-note { color: var(--color-muted); font-size: var(--text-sm); max-width: 28rem; }
+@media (max-width: 60rem) { .wsim { grid-template-columns: minmax(0, 1fr); } }
