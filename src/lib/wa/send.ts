@@ -5,6 +5,7 @@
 import type { Db } from "../db/client";
 import { getWaState, loadSnapshot, markWaFailed, markWaSent, startWaMessage } from "../db/queries";
 import { maskPhone, sendLongText, sendTemplate, WaError, type WaConfig } from "./cloud";
+import { deliver, type Channel } from "./channel";
 import { whatsappDigest } from "./digest";
 
 /** WhatsApp only allows free text within 24 hours of the owner's last message to us. */
@@ -65,4 +66,21 @@ export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfi
       return { ok: false, reason: "wa_error", errorKind: err.kind, message: err.message, to: shown, messageId: tid };
     }
   }
+}
+
+/**
+ * Same "Send report" button for Twilio (or any Channel). There is no template fallback here: outside the 24h window the owner
+ * has to message us first, so we say that instead of sending something that will fail.
+ */
+export async function sendReportViaChannel(db: Db, ch: Channel, merchantId: string, opts: { now?: Date } = {}): Promise<SendOutcome> {
+  const now = opts.now ?? new Date();
+  const state = await getWaState(db, merchantId);
+  if (!state.phone) return { ok: false, reason: "no_number", message: "Pehle WhatsApp number daalo." };
+  if (!windowOpenUntil(state.lastInboundAt, now)) {
+    return { ok: false, reason: "wa_error", errorKind: "window", to: maskPhone(state.phone), message: "Pehle apne phone se bot ko 'Hi' bhejo (24 ghante ki window band hai), phir Send dabao." };
+  }
+  const snap = await loadSnapshot(db, merchantId, { now });
+  const r = await deliver(db, ch, merchantId, state.phone, [{ text: whatsappDigest(snap).text }], "report", now);
+  if (r.error) return { ok: false, reason: "wa_error", errorKind: r.error.code === 63038 ? "rate" : "other", message: r.error.message, to: maskPhone(state.phone) };
+  return { ok: true, kind: "report", to: maskPhone(state.phone), parts: r.sent, messageId: "" };
 }

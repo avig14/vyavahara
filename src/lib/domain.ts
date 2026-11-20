@@ -102,13 +102,15 @@ export interface Txn {
   method: "upi" | "cash" | "card";
   kind: "sale" | "refund";
   utr: string | null;
-  payerVpaHash: string | null;
+  /** only the seed fills this; loadSnapshot leaves it out to save transfer */
+  payerVpaHash?: string | null;
   source: "paytm" | "soundbox" | "manual" | "seed";
   createdAt: Date;
 }
 
 export interface SaleItem {
-  id: string;
+  /** only the seed fills this; loadSnapshot leaves it out to save transfer */
+  id?: string;
   transactionId: string;
   productId: string;
   qty: number;

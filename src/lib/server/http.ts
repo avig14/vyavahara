@@ -1,5 +1,5 @@
 /** Thin helpers for route handlers: one place for DB/merchant lookup and uniform JSON errors. */
-import { getDb, type Db } from "../db/client";
+import { flushWrites, getDb, isQuotaError, type Db } from "../db/client";
 import { getDefaultMerchantId } from "../db/queries";
 
 export class HttpError extends Error {
@@ -31,11 +31,15 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     return await fn();
   } catch (e) {
     if (e instanceof HttpError) return json({ error: e.message }, e.status);
-    // Neon free plan out of compute: say so plainly instead of a generic 500
-    if (/exceeded the quota/i.test(`${(e as { cause?: unknown })?.cause ?? ""} ${e instanceof Error ? e.message : ""}`))
-      return json({ error: "Database limit khatam ho gaya (Neon free plan quota). Database plan badhaiye ya naya database lagaiye." }, 503);
+    if (isQuotaError(e)) {
+      console.error("[api] Neon plan limit reached");
+      return json({ error: "Database limit reached for this month. Try again later or upgrade the Neon plan." }, 503);
+    }
     console.error("[api]", e);
     return json({ error: "Something went wrong" }, 500);
+  } finally {
+    // One tiny update per request that wrote anything, so other server instances drop their cached snapshot.
+    await flushWrites();
   }
 }
 

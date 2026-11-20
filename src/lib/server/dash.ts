@@ -4,6 +4,7 @@ import { loadSnapshot } from "../db/queries";
 import { buildContext, detectRecommendations, type RecContext, type Recommendation } from "../analytics/recommendations";
 import type { Snapshot } from "../domain";
 import { isPeriodName, type PeriodName } from "../time";
+import { scheduleKhataAlerts } from "./alerts-hook";
 
 export interface Dash {
   snap: Snapshot;
@@ -14,6 +15,7 @@ export interface Dash {
 export async function loadDash(c: Ctx): Promise<Dash> {
   const snap = await loadSnapshot(c.db, c.merchantId, { now: c.now });
   const cx = buildContext(snap);
+  scheduleKhataAlerts(c, snap);
   return { snap, cx, recs: detectRecommendations(snap, cx) };
 }
 
