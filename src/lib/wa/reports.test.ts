@@ -105,3 +105,45 @@ describe("whatsapp formatting", () => {
     expect(all.filter((x) => x.kind === "text").every((x) => !/\*[^*\s][^*]*\*/.test(x.text))).toBe(true);
   });
 });
+
+import { MENU_LIST, interactiveFor, textForTap } from "./interactive";
+describe("tappable messages", () => {
+  const all = ["Hi", "1", "2", "3", "4", "5", "6", "6 week", "6 month", "7", "8", "9", "aaj kitni sale hui"];
+  it("respects Meta's limits for buttons and lists", () => {
+    for (const t of all) {
+      const i = interactiveFor(t);
+      if (i.kind === "buttons") {
+        expect(i.buttons.length).toBeGreaterThan(0);
+        expect(i.buttons.length).toBeLessThanOrEqual(3);
+        for (const b of i.buttons) expect(b.title.length).toBeLessThanOrEqual(20);
+      } else {
+        expect(i.button.length).toBeLessThanOrEqual(20);
+        const rows = i.sections.flatMap((s) => s.rows);
+        expect(rows.length).toBeLessThanOrEqual(10);
+        for (const r of rows) {
+          expect(r.title.length).toBeLessThanOrEqual(24);
+          expect((r.description ?? "").length).toBeLessThanOrEqual(72);
+        }
+      }
+    }
+  });
+  it("greeting opens the menu list", () => expect(interactiveFor("Hi")).toBe(MENU_LIST));
+  it("every tap id goes to the intent it names", () => {
+    const rows = MENU_LIST.kind === "list" ? MENU_LIST.sections.flatMap((s) => s.rows) : [];
+    const want: Record<string, string> = { "1": "report", "2": "stock", "3": "khata", "4": "suppliers", "5": "pdf", "6": "sales", "7": "customers", "8": "vendors", "9": "recs" };
+    for (const r of rows) expect(intentOf(textForTap(r.id), null)).toBe(want[r.id]);
+    for (const t of all) {
+      const i = interactiveFor(t);
+      if (i.kind === "buttons") for (const b of i.buttons) expect(intentOf(textForTap(b.id), null)).not.toBe("agent");
+    }
+    expect(textForTap("menu")).toBe("Hi");
+  });
+  it("sales buttons move between periods", () => {
+    const ids = (t: string) => {
+      const i = interactiveFor(t);
+      return i.kind === "buttons" ? i.buttons.map((b) => b.id) : [];
+    };
+    expect(ids("6")).toEqual(["6 week", "6 month", "menu"]);
+    expect(ids("6 week")).toEqual(["6", "6 month", "menu"]);
+  });
+});

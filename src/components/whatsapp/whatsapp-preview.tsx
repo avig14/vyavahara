@@ -1,56 +1,99 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Button, PageHeader } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { postJson, toApiError } from "@/lib/ui/api";
-import { formatWa } from "@/lib/wa/format-wa";
+import { formatWa, tokenizeWa, type WaToken } from "@/lib/wa/format-wa";
+import { textForTap, type Interactive } from "@/lib/wa/interactive";
 
 interface Msg {
   id: number;
   from: "me" | "bot";
   text: string;
   at: Date;
+  /** tappable options under a bot message */
+  interactive?: Interactive;
+  /** the bot has answered this message (blue ticks) */
+  answered?: boolean;
 }
-
-const QUICK = [
-  { label: "Hi", text: "Hi" },
-  { label: "Aaj ka report", text: "1" },
-  { label: "Sales", text: "6" },
-  { label: "Sales (week)", text: "6 week" },
-  { label: "Customers", text: "7" },
-  { label: "Suppliers", text: "8" },
-  { label: "Suggestions", text: "9" },
-  { label: "Stock", text: "2" },
-  { label: "Udhaar", text: "3" },
-];
 
 const clock = (d: Date) => d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
-function Bubble({ m }: { m: Msg }) {
+const Verified = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" aria-label="Verified business" role="img">
+    <path fill="#25d366" d="M12 1.5l2.6 1.7 3.1-.3 1.2 2.9 2.7 1.6-.6 3.1 1.3 2.8-2 2.4-.1 3.1-3 .9-1.9 2.5-2.9-1.1-2.9 1.1-1.9-2.5-3-.9-.1-3.1-2-2.4 1.3-2.8-.6-3.1 2.7-1.6 1.2-2.9 3.1.3z" />
+    <path fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M8 12.3l2.7 2.7L16 9.6" />
+  </svg>
+);
+
+const Ticks = ({ read }: { read: boolean }) => (
+  <svg viewBox="0 0 18 12" width="16" height="11" aria-label={read ? "Read" : "Sent"} role="img">
+    <path fill="none" stroke={read ? "#53bdeb" : "#8696a0"} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" d="M1 6.5l3.2 3.2L10.5 2.5M7 8.4l1.3 1.3L14.6 2.5" />
+  </svg>
+);
+
+/** WhatsApp allows bold inside italic and the other way round, so formatted tokens are rendered recursively. */
+function Inline({ tokens }: { tokens: WaToken[] }) {
   return (
-    <div className={`wsim-row wsim-${m.from}`}>
+    <>
+      {tokens.map((t, j) =>
+        t.kind === "bold" ? (
+          <b key={j}>
+            <Inline tokens={tokenizeWa(t.text)} />
+          </b>
+        ) : t.kind === "italic" ? (
+          <i key={j}>
+            <Inline tokens={tokenizeWa(t.text)} />
+          </i>
+        ) : t.kind === "link" ? (
+          <a key={j} href={t.text} target="_blank" rel="noreferrer noopener">
+            {t.text}
+          </a>
+        ) : (
+          <span key={j}>{t.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+function Text({ text }: { text: string }) {
+  return (
+    <>
+      {formatWa(text).map((line, i) => (
+        <p key={i}>{line.length === 0 ? " " : <Inline tokens={line} />}</p>
+      ))}
+    </>
+  );
+}
+
+function Bubble({ m, live, onTap, onOpenList }: { m: Msg; live: boolean; onTap: (id: string, title: string) => void; onOpenList: () => void }) {
+  const i = m.interactive;
+  return (
+    <div className={`wsim-msg wsim-${m.from}`}>
       <div className="wsim-bubble">
-        {formatWa(m.text).map((line, i) => (
-          <p key={i}>
-            {line.length === 0
-              ? " "
-              : line.map((t, j) =>
-                  t.kind === "bold" ? (
-                    <b key={j}>{t.text}</b>
-                  ) : t.kind === "italic" ? (
-                    <i key={j}>{t.text}</i>
-                  ) : t.kind === "link" ? (
-                    <a key={j} href={t.text} target="_blank" rel="noreferrer noopener">
-                      {t.text}
-                    </a>
-                  ) : (
-                    <span key={j}>{t.text}</span>
-                  ),
-                )}
-          </p>
-        ))}
-        <span className="wsim-time">{clock(m.at)}</span>
+        <Text text={m.text} />
+        <span className="wsim-time">
+          {clock(m.at)}
+          {m.from === "me" ? <Ticks read={Boolean(m.answered)} /> : null}
+        </span>
       </div>
+      {i?.kind === "buttons" ? (
+        <div className="wsim-actions">
+          {i.buttons.map((b) => (
+            <button key={b.id} type="button" disabled={!live} onClick={() => onTap(b.id, b.title)}>
+              <span aria-hidden="true">↩</span> {b.title}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {i?.kind === "list" ? (
+        <div className="wsim-actions">
+          <button type="button" disabled={!live} onClick={onOpenList}>
+            <span aria-hidden="true">☰</span> {i.button}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -60,25 +103,31 @@ export function WhatsappPreview() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sheet, setSheet] = useState(false);
   const next = useRef(1);
+  const started = useRef(false);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   }, [msgs, busy]);
 
-  async function send(raw: string) {
+  async function send(raw: string, shown?: string) {
     const t = raw.trim();
     if (!t || busy) return;
     setError(null);
     setText("");
-    setMsgs((m) => [...m, { id: next.current++, from: "me", text: t, at: new Date() }]);
+    setSheet(false);
+    const mine = next.current++;
+    setMsgs((m) => [...m, { id: mine, from: "me", text: shown ?? t, at: new Date() }]);
     setBusy(true);
     try {
-      const r = await postJson<{ parts: string[] }>("/api/whatsapp/simulate", { text: t });
-      for (const p of r.parts) {
-        setMsgs((m) => [...m, { id: next.current++, from: "bot", text: p, at: new Date() }]);
-        await new Promise((res) => setTimeout(res, 250));
+      const r = await postJson<{ parts: string[]; interactive: Interactive }>("/api/whatsapp/simulate", { text: t });
+      setMsgs((m) => m.map((x) => (x.id === mine ? { ...x, answered: true } : x)));
+      for (let k = 0; k < r.parts.length; k++) {
+        await new Promise((res) => setTimeout(res, 350));
+        const last = k === r.parts.length - 1;
+        setMsgs((m) => [...m, { id: next.current++, from: "bot", text: r.parts[k], at: new Date(), interactive: last ? r.interactive : undefined }]);
       }
     } catch (e) {
       setError(toApiError(e).message);
@@ -86,6 +135,16 @@ export function WhatsappPreview() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    void send("Hi");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const lastBot = [...msgs].reverse().find((m) => m.from === "bot");
+  const list = lastBot?.interactive?.kind === "list" ? lastBot.interactive : null;
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -97,24 +156,28 @@ export function WhatsappPreview() {
       <PageHeader
         title="WhatsApp preview"
         hindi="व्हाट्सऐप"
-        description="Yeh bot ke jawab ka preview hai: wahi menu aur reports jo WhatsApp par jaate hain. Kuch bhi Meta ko nahi bheja jaata."
+        description="Bot ka chat aise dikhta hai: buttons dabaiye ya likhiye. Wahi menu aur reports jo WhatsApp par jaate hain; kuch bhi Meta ko nahi bheja jaata."
       />
       <div className="wsim">
         <div className="wsim-phone" role="region" aria-label="WhatsApp chat preview">
           <header className="wsim-head">
+            <span className="wsim-back" aria-hidden="true">‹</span>
             <span className="wsim-avatar" aria-hidden="true">V</span>
-            <div>
-              <b>Vyavahāra</b>
-              <small>{busy ? "typing…" : "business account · preview"}</small>
+            <div className="wsim-who">
+              <b>
+                Vyavahāra <Verified />
+              </b>
+              <small>{busy ? "typing…" : "Business account"}</small>
             </div>
           </header>
           <div className="wsim-body" aria-live="polite">
-            {msgs.length === 0 ? <p className="wsim-empty">Neeche se koi button dabaiye, ya <b>Hi</b> likhiye.</p> : null}
+            <p className="wsim-chip">Aaj</p>
+            <p className="wsim-lock">Yeh ek preview hai. Kuch bhi WhatsApp ko nahi bheja jaata.</p>
             {msgs.map((m) => (
-              <Bubble key={m.id} m={m} />
+              <Bubble key={m.id} m={m} live={m === lastBot && !busy} onTap={(id, title) => void send(textForTap(id), title)} onOpenList={() => setSheet(true)} />
             ))}
             {busy ? (
-              <div className="wsim-row wsim-bot">
+              <div className="wsim-msg wsim-bot">
                 <div className="wsim-bubble wsim-typing" aria-label="Bot likh raha hai">
                   <span /><span /><span />
                 </div>
@@ -123,33 +186,35 @@ export function WhatsappPreview() {
             <div ref={end} />
           </div>
           {error ? <p className="wsim-error" role="alert">{error}</p> : null}
-          <div className="wsim-quick">
-            {QUICK.map((q) => (
-              <button key={q.label} type="button" onClick={() => void send(q.text)} disabled={busy}>
-                {q.label}
-              </button>
-            ))}
-          </div>
           <form className="wsim-form" onSubmit={onSubmit}>
-            <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message likhiye…" aria-label="Message" maxLength={500} disabled={busy} />
-            <Button type="submit" variant="primary" disabled={busy || !text.trim()}>
-              Send
-            </Button>
+            <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Message" aria-label="Message" maxLength={500} disabled={busy} />
+            <button type="submit" disabled={busy || !text.trim()} aria-label="Send">➤</button>
           </form>
+          {sheet && list ? (
+            <div className="wsim-sheet" role="dialog" aria-label={list.title}>
+              <div className="wsim-sheet-head">
+                <button type="button" onClick={() => setSheet(false)} aria-label="Band karein">✕</button>
+                <b>{list.title}</b>
+              </div>
+              <div className="wsim-sheet-body">
+                {list.sections.map((s) => (
+                  <section key={s.title}>
+                    <h3>{s.title}</h3>
+                    {s.rows.map((r) => (
+                      <button key={r.id} type="button" onClick={() => void send(textForTap(r.id), r.title)}>
+                        <span>
+                          <b>{r.title}</b>
+                          {r.description ? <small>{r.description}</small> : null}
+                        </span>
+                        <i aria-hidden="true" />
+                      </button>
+                    ))}
+                  </section>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
-        <aside className="wsim-help">
-          <h2>Kya poochh sakte hain</h2>
-          <ul>
-            <li><b>1</b> aaj ka poora report</li>
-            <li><b>6</b> sales report (<i>6 week</i>, <i>6 month</i>)</li>
-            <li><b>7</b> customer report</li>
-            <li><b>8</b> supplier report</li>
-            <li><b>9</b> suggestions (kya karein)</li>
-            <li><b>2</b> stock · <b>3</b> udhaar · <b>4</b> supplier payments · <b>5</b> PDF</li>
-            <li>Ya seedha poochhiye, jaise <i>&ldquo;aaj kitni sale hui?&rdquo;</i></li>
-          </ul>
-          <p className="wsim-note">Preview mein live data dikhta hai. Asli WhatsApp par bhejne ke liye Meta ka business account chahiye.</p>
-        </aside>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 import { getCtx, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { answerFor } from "@/lib/wa/router";
 import { splitMessage } from "@/lib/wa/cloud";
+import { interactiveFor } from "@/lib/wa/interactive";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -17,5 +18,5 @@ export const POST = (req: Request) =>
     if (!text) throw new HttpError(400, "Message khali hai");
     const reply = await answerFor(c.db, c.merchantId, text, null, c.now);
     // long answers arrive as several messages on WhatsApp, so show them the same way
-    return json({ parts: splitMessage(reply) });
+    return json({ parts: splitMessage(reply), interactive: interactiveFor(text) });
   });
