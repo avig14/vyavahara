@@ -1,6 +1,6 @@
 import { getCtx, handle, HttpError, json } from "@/lib/server/http";
 import { scanBill } from "@/lib/ingest/bill-scan";
-import { extractBill, type ImageInput } from "@/lib/ingest/vision";
+import { billReader, extractBill, type ImageInput } from "@/lib/ingest/vision";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -26,7 +26,7 @@ export const POST = (req: Request) =>
     if (file.size > MAX_BYTES) throw new HttpError(413, "Photo is too big (max 4 MB)");
     const vendorRaw = form.get("vendorId");
     const vendorId = typeof vendorRaw === "string" && vendorRaw ? vendorRaw : null;
-    if (!process.env.ANTHROPIC_API_KEY) throw new HttpError(503, "ANTHROPIC_API_KEY is not set");
+    if (!billReader()) throw new HttpError(503, "Bill reader is not set up: set SARVAM_API_KEY (or ANTHROPIC_API_KEY)");
 
     const c = await getCtx();
     const image: ImageInput = { base64: Buffer.from(await file.arrayBuffer()).toString("base64"), mime };

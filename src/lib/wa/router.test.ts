@@ -123,6 +123,7 @@ const ports = (over: Partial<Ports> = {}): Ports => ({
   extractShot: async () => null,
   agent: async (_d, _m, text) => ({ text: `AGENT:${text}`, attachments: [] }) as never,
   agentReady: () => true,
+  visionReady: () => true,
   ...over,
 });
 
@@ -372,7 +373,7 @@ describe("voice, photos, PDF", () => {
     expect(last(ch)).toMatch(/nahi lag raha/);
     await say(ch, null, ports(), { url: "https://api.twilio.com/m/b", type: "image/heic" });
     expect(last(ch)).toMatch(/JPG ya PNG/);
-    await say(ch, null, ports({ agentReady: () => false }), { url: "https://api.twilio.com/m/a", type: "image/jpeg" });
+    await say(ch, null, ports({ visionReady: () => false }), { url: "https://api.twilio.com/m/a", type: "image/jpeg" });
     expect(last(ch)).toMatch(/band/);
   });
 

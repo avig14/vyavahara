@@ -21,7 +21,7 @@ import { buildContext } from "../analytics/recommendations";
 import { applyChoice, parseChoice } from "../agent/actions";
 import { runAgent, type AgentResult } from "../agent/run";
 import { dbStore } from "../agent/store";
-import { extractBill, extractPaymentShot, classifyImage, type Bill, type ImageInput, type PaymentShotRaw } from "../ingest/vision";
+import { billReader, extractBill, extractPaymentShot, classifyImage, type Bill, type ImageInput, type PaymentShotRaw } from "../ingest/vision";
 import { scanBill } from "../ingest/bill-scan";
 import { findPayment } from "../ingest/reconcile";
 import { transcribe } from "../ingest/sarvam";
@@ -43,6 +43,8 @@ export interface Ports {
   agent(db: Db, merchantId: string, text: string, now: Date): Promise<AgentResult>;
   /** false → say "free sawal abhi nahi" instead of calling the agent */
   agentReady(): boolean;
+  /** false → say "photo padhne ki suvidha abhi band hai" (no Sarvam or Claude key for reading photos) */
+  visionReady(): boolean;
 }
 
 export const livePorts: Ports = {
@@ -52,6 +54,7 @@ export const livePorts: Ports = {
   extractShot: (i) => extractPaymentShot(i),
   agent: (db, id, text, now) => runAgent(db, id, text, "wa", { now }),
   agentReady: () => Boolean(process.env.ANTHROPIC_API_KEY),
+  visionReady: () => billReader() !== null,
 };
 
 /* ---------------- result of routing one message ---------------- */
@@ -122,7 +125,7 @@ async function compose(db: Db, ch: Channel, merchantId: string, msg: Pick<Inboun
 }
 
 async function image(db: Db, ch: Channel, merchantId: string, media: { url: string; type: string }, ports: Ports, now: Date): Promise<Reply> {
-  if (!ports.agentReady()) return text("Photo padhne ki suvidha abhi band hai. Menu ke liye *Hi* likho.");
+  if (!ports.visionReady()) return text("Photo padhne ki suvidha abhi band hai. Menu ke liye *Hi* likho.");
   try {
     const f = await ch.fetchMedia(media.url);
     const mime = (f.mime || media.type).toLowerCase();

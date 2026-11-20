@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type Anthropic from "@anthropic-ai/sdk";
 import { getAnthropic, MODEL } from "../anthropic";
+import { extractBillSarvam, readImageSarvam } from "./bill-ocr-sarvam";
 
 export const BillSchema = z.object({
   vendor_name: z.string().nullable(),
@@ -73,16 +74,45 @@ const img = (i: ImageInput): Anthropic.Messages.ContentBlockParam => ({
   source: { type: "base64", media_type: i.mime, data: i.base64 },
 });
 
-export async function classifyImage(i: ImageInput, client: ClientLike = getAnthropic()) {
+export async function classifyImage(i: ImageInput, client?: ClientLike): Promise<"supplier_bill" | "payment_screenshot" | "other"> {
+  if (!client) return sarvamThenClaude(async () => (await readImageSarvam(i)).kind, () => classifyImage(i, getAnthropic()));
   const r = await parseWith(client, ImageKind, [img(i), { type: "text", text: "What is this image? supplier_bill = a vendor/supplier invoice or bill; payment_screenshot = a UPI/app payment success screen; otherwise other." }], 100);
   return r?.kind ?? "other";
 }
 
-export function extractBill(i: ImageInput, client: ClientLike = getAnthropic()) {
-  return parseWith(client, BillSchema, [img(i), { type: "text", text: "Extract this Indian supplier bill. Copy numbers exactly as printed; null if unreadable. Amounts in rupees as printed." }], 4000);
+const claudeBill = (i: ImageInput, client: ClientLike) =>
+  parseWith(client, BillSchema, [img(i), { type: "text", text: "Extract this Indian supplier bill. Copy numbers exactly as printed; null if unreadable. Amounts in rupees as printed." }], 4000);
+
+/** Run the Sarvam reader when it is the chosen one. If Sarvam breaks and a Claude key exists (and Sarvam was not forced), try Claude. */
+async function sarvamThenClaude<T>(sarvam: () => Promise<T>, claude: () => Promise<T>): Promise<T> {
+  if (billReader() !== "sarvam") return claude();
+  try {
+    return await sarvam();
+  } catch (e) {
+    if (!process.env.ANTHROPIC_API_KEY || (process.env.BILL_OCR ?? "").toLowerCase() === "sarvam") throw e;
+    console.error("[photo-ocr] Sarvam failed, trying Claude:", e instanceof Error ? e.message : e);
+    return claude();
+  }
 }
 
-export function extractPaymentShot(i: ImageInput, client: ClientLike = getAnthropic()) {
+/** Which reader the photo scans (bill, payment screenshot, "what is this") can use. BILL_OCR = sarvam | claude | (unset = Sarvam Vision when its key is set, else Claude). */
+export function billReader(): "sarvam" | "claude" | null {
+  const pick = (process.env.BILL_OCR ?? "").toLowerCase();
+  const sarvam = Boolean(process.env.SARVAM_API_KEY);
+  const claude = Boolean(process.env.ANTHROPIC_API_KEY);
+  if (pick === "claude") return claude ? "claude" : null;
+  if (pick === "sarvam") return sarvam ? "sarvam" : null;
+  return sarvam ? "sarvam" : claude ? "claude" : null;
+}
+
+/** Read a supplier bill. With a `client` it is always Claude (tests). Otherwise Sarvam Vision, falling back to Claude if Sarvam fails and a Claude key exists. */
+export async function extractBill(i: ImageInput, client?: ClientLike): Promise<Bill | null> {
+  if (client) return claudeBill(i, client);
+  return sarvamThenClaude(() => extractBillSarvam(i), () => claudeBill(i, getAnthropic()));
+}
+
+export async function extractPaymentShot(i: ImageInput, client?: ClientLike): Promise<PaymentShotRaw | null> {
+  if (!client) return sarvamThenClaude(async () => (await readImageSarvam(i)).shot, () => extractPaymentShot(i, getAnthropic()));
   return parseWith(client, PaymentShotSchema, [img(i), { type: "text", text: "Read this UPI payment screenshot. Copy the amount in rupees, the UTR / transaction reference and the date-time exactly as shown; null if not visible. Do not guess." }], 600);
 }
 
