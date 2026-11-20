@@ -48,8 +48,10 @@ export function salesReportText(snap: Snapshot, period: PeriodName = "today", ct
   }
   if (r.topByProfit.length) L.push("", `*💵 Sabse zyada munafa:* ${r.topByProfit.slice(0, 3).map((t) => `${t.name} ${rupees(t.profitPaise)}`).join(" · ")}`);
   if (r.lostSales.requests > 0) L.push("", `❌ Lost sales ${rupees(r.lostSales.totalPaise)}${r.lostSales.top ? `: ${r.lostSales.top.requests} log ${r.lostSales.top.name} maang ke gaye` : ""}`);
-  for (const a of r.anomalies.slice(0, 2)) L.push(`⚠️ ${a.text}`);
-  if (s.totalPaise === 0 && s.bills === 0) L.push("", "Is period mein abhi koi sale nahi hui.");
+  // "sales are 100% below normal" is just noise before the first sale of the day, and the line below already says so
+  const noSalesYet = s.bills === 0;
+  for (const a of r.anomalies.filter((x) => !(noSalesYet && x.kind === "sales_dip")).slice(0, 2)) L.push(`⚠️ ${a.text}`);
+  if (noSalesYet) L.push("", period === "today" ? "Aaj abhi koi sale nahi hui. Is hafte ka dekhne ke liye *6 week* bhejiye." : "Is period mein koi sale nahi hui.");
   L.push("", FOOT);
   return L.join("\n");
 }
@@ -132,7 +134,7 @@ const GROUPS: { module: RecModule; head: string }[] = [
 
 const confidenceWord = (c: number) => (c >= 0.8 ? "pakka" : c >= 0.5 ? "andaza" : "kam bharosa");
 
-export function recommendationReportText(snap: Snapshot, ctx?: RecContext, perGroup = 3): string {
+export function recommendationReportText(snap: Snapshot, ctx?: RecContext, perGroup = 2): string {
   const all = detectRecommendations(snap, ctx ?? buildContext(snap));
   const L: string[] = [`✅ *Suggestions report*`, snap.merchant.name, ""];
   if (!all.length) return [...L, "Abhi koi khaas suggestion nahi hai. Sab theek chal raha hai.", "", FOOT].join("\n");
@@ -149,6 +151,8 @@ export function recommendationReportText(snap: Snapshot, ctx?: RecContext, perGr
       L.push(`${n}. ${r.title} _(${tail})_`);
     }
   }
+  const more = all.length - n;
+  if (more > 0) L.push("", `_…aur ${more} suggestions dashboard par_`);
   L.push("", "_Andaza purane sales aur stock par based hai; faisla aapka._", FOOT);
   return L.join("\n");
 }

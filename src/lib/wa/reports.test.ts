@@ -147,3 +147,21 @@ describe("tappable messages", () => {
     expect(ids("6 week")).toEqual(["6", "6 month", "menu"]);
   });
 });
+
+import { freeTextIntent } from "./router";
+describe("typed questions without the AI", () => {
+  it("answers the common ones from the reports", () => {
+    expect(freeTextIntent("aaj kitni sale hui")).toBe("report");
+    expect(freeTextIntent("kya khatam hone wala hai")).toBe("stock");
+    expect(freeTextIntent("supplier ko kitna dena hai")).toBe("suppliers");
+    expect(freeTextIntent("kiska udhaar baaki hai")).toBe("khata");
+    expect(freeTextIntent("udhaar")).toBe("khata");
+    expect(freeTextIntent("sale is hafte ki")).toBe("sales");
+  });
+  it("leaves entries and customer-specific asks alone", () => {
+    expect(freeTextIntent("Suresh 300 udhaar likho")).toBeNull();
+    expect(freeTextIntent("udhaar kitna hai suresh ka")).toBeNull();
+    expect(freeTextIntent("namaste kaise ho")).toBeNull();
+    expect(freeTextIntent("")).toBeNull();
+  });
+});

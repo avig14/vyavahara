@@ -16,7 +16,7 @@ export const POST = (req: Request) =>
     const b = (await readJson(req)) as { text?: unknown };
     const text = typeof b.text === "string" ? b.text.trim().slice(0, 500) : "";
     if (!text) throw new HttpError(400, "Message khali hai");
-    const reply = await answerFor(c.db, c.merchantId, text, null, c.now);
+    const reply = await answerFor(c.db, c.merchantId, text, null, c.now, { preview: true });
     // long answers arrive as several messages on WhatsApp, so show them the same way
     return json({ parts: splitMessage(reply), interactive: interactiveFor(text) });
   });

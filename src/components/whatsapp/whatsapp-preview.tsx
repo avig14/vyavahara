@@ -106,6 +106,8 @@ export function WhatsappPreview() {
   const [sheet, setSheet] = useState(false);
   const next = useRef(1);
   const started = useRef(false);
+  /** set synchronously, so two taps in the same instant cannot both pass the busy check */
+  const sending = useRef(false);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -114,7 +116,8 @@ export function WhatsappPreview() {
 
   async function send(raw: string, shown?: string) {
     const t = raw.trim();
-    if (!t || busy) return;
+    if (!t || sending.current) return;
+    sending.current = true;
     setError(null);
     setText("");
     setSheet(false);
@@ -132,6 +135,7 @@ export function WhatsappPreview() {
     } catch (e) {
       setError(toApiError(e).message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   }
@@ -140,8 +144,16 @@ export function WhatsappPreview() {
     if (started.current) return;
     started.current = true;
     void send("Hi");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function restart() {
+    if (sending.current) return;
+    next.current = 1;
+    setMsgs([]);
+    setError(null);
+    setSheet(false);
+    void send("Hi");
+  }
 
   const lastBot = [...msgs].reverse().find((m) => m.from === "bot");
   const list = lastBot?.interactive?.kind === "list" ? lastBot.interactive : null;
@@ -215,6 +227,9 @@ export function WhatsappPreview() {
             </div>
           ) : null}
         </div>
+        <button type="button" className="wsim-reset" onClick={restart} disabled={busy}>
+          Naya chat shuru karein
+        </button>
       </div>
     </>
   );
