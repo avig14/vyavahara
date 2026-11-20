@@ -1,5 +1,8 @@
+import { monthName } from "./dlang";
 /** Day labels for the stock and supplier screens. Dates arrive as `YYYY-MM-DD` IST keys or ISO instants; both print as "20 Nov" in IST. */
-const dayFmt = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const partsFmt = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "numeric", timeZone: "Asia/Kolkata" });
+const dayFmt = { format: (d: Date) => { const p = partsFmt.formatToParts(d); const day = p.find((x) => x.type === "day")?.value ?? ""; const m = Number(p.find((x) => x.type === "month")?.value ?? 1); return `${day} ${monthName(m - 1, MONTHS)}`; } };
 
 /** `2026-11-20` becomes "20 Nov". Anything unparseable comes back as it was given. */
 export function dayKeyLabel(key: string): string {

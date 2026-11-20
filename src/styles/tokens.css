@@ -1,11 +1,11 @@
 @theme static {
   /* type scale: app scale, ratio 1.2, no fluid heads */
   --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-md: 1rem;
-  --text-lg: 1.2rem;
-  --text-xl: 1.44rem;
-  --text-2xl: 1.728rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
   --text-3xl: 2.074rem;
   --text-figure: 2.488rem;
   --text-display-s: 1.44rem;
@@ -22,14 +22,21 @@
   --color-paper: oklch(98.1% 0.005 258);
   --color-paper-2: oklch(99.6% 0.005 240);
   --color-paper-3: oklch(95.7% 0.025 223);
-  --color-ink: oklch(22% 0.05 261);
-  --color-ink-2: oklch(30.9% 0.13 261);
-  --color-muted: oklch(46% 0.03 255);
+  --color-ink: oklch(17.5% 0 0); /* paytm.com text: #101010 */
+  --color-ink-2: oklch(36% 0 0); /* #4f4f4f */
+  --color-muted: oklch(50% 0 0); /* #707070 */
   --color-rule: oklch(90.5% 0.012 250);
   --color-rule-strong: oklch(80% 0.02 250);
 
   /* brand: cyan is a fill, never text on paper (2.3:1); navy sits on it (5.6:1) */
   --color-accent: oklch(73.7% 0.145 229);
+  --color-highlight: oklch(73.7% 0.145 229); /* paytm.com blue for the important word in a headline */
+  --color-link: oklch(60% 0.19 252); /* paytm.com link/emphasis blue (#0085FE family) */
+  --color-card-shadow: color-mix(in oklab, oklch(30.9% 0.13 261) 10%, transparent);
+  --color-lilac: oklch(93.5% 0.035 285);
+  --color-sky: oklch(90% 0.06 235);
+  --color-btn-blue: oklch(40% 0.15 262); /* outline button text, as on paytm.com "Pay Now" */
+  --color-btn-line: oklch(47% 0.16 262);
   --color-accent-ink: oklch(30.9% 0.13 261);
   --color-accent-soft: oklch(95.7% 0.025 223);
   --color-accent-line: oklch(86% 0.08 226);
@@ -53,16 +60,16 @@
   --color-series-3: oklch(62% 0.03 255);
   --color-series-4: oklch(84% 0.015 250);
 
-  /* one family, Figtree, with Noto Sans Devanagari behind it for व्यवहार */
-  --font-display: var(--font-figtree), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-figtree), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
+  /* one family, Inter (as paytm.com), with Noto Sans Devanagari behind it for व्यवहार */
+  --font-display: var(--font-inter-paytm), var(--font-inter), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter-paytm), var(--font-inter), var(--font-deva), ui-sans-serif, system-ui, sans-serif;
   --font-outlier: var(--font-body);
 
   --radius-card: 8px;
   --radius-control: 6px;
   --radius-pill: 999px;
   --shadow-card: none;
-  --tracking-display: -0.015em;
+  --tracking-display: 0;
 }
 :root {
   --space-3xs: 2px;

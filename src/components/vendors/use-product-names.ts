@@ -10,6 +10,9 @@ import type { StockNames } from "./types";
  */
 export function useProductNames(): (productId: string) => string {
   const { data } = useApi<StockNames>("/api/dashboard/inventory");
-  const map = useMemo(() => new Map((data?.forecasts ?? []).map((f) => [f.productId, f.name])), [data]);
+  const map = useMemo(
+    () => new Map((data?.forecasts ?? []).map((f) => [f.productId, f.name])),
+    [data],
+  );
   return (id) => map.get(id) ?? id;
 }

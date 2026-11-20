@@ -1,4 +1,6 @@
+"use client";
 import type { ReactNode } from "react";
+import { useL } from "@/lib/ui/lang";
 import { cx } from "@/lib/ui/cx";
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
@@ -88,9 +90,10 @@ export function DataTable<Row>({
   onSelect,
   skeletonRows = 6,
 }: DataTableProps<Row>) {
-  if (error) return <ErrorState title="Could not load this table" error={error} onRetry={onRetry} retrying={loading} />;
+  const l = useL();
+  if (error) return <ErrorState title={l("Could not load this table", "यह तालिका नहीं खुल पाई", "Yeh table nahi khul payi")} error={error} onRetry={onRetry} retrying={loading} />;
   if (!rows) return loading ? <SkeletonRows rows={skeletonRows} cols={Math.min(columns.length, 5)} /> : null;
-  if (rows.length === 0) return <>{empty ?? <EmptyState title="Nothing here yet" />}</>;
+  if (rows.length === 0) return <>{empty ?? <EmptyState title={l("Nothing here yet", "यहाँ अभी कुछ नहीं", "Yahan abhi kuch nahi")} />}</>;
 
   const primaryKey = (columns.find((c) => c.primary) ?? columns[0]).key;
   const hasFooter = columns.some((c) => c.footer !== undefined);

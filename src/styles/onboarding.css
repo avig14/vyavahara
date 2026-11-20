@@ -13,7 +13,7 @@
 /* the stepper: an ordered list, state in words as well as marks */
 .ob-steps { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule-strong); }
 .ob-step { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: var(--space-2xs) var(--space-sm); padding: var(--space-sm) var(--space-sm); border-bottom: 1px solid var(--color-rule); color: var(--color-muted); }
-.ob-step[data-state="current"] { background: var(--color-paper-3); box-shadow: inset 3px 0 0 var(--color-accent); color: var(--color-ink); }
+.ob-step[data-state="current"] { background: var(--color-paper-3); color: var(--color-ink); }
 .ob-step[data-state="done"] { color: var(--color-ink); }
 .ob-n { font-weight: 700; }
 .ob-l { font-weight: 600; }
@@ -40,7 +40,6 @@
   .ob-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--color-rule); }
   .ob-step { grid-template-columns: minmax(0, 1fr); gap: 0; padding: var(--space-xs); border-bottom: 0; border-right: 1px solid var(--color-rule); }
   .ob-step:last-child { border-right: 0; }
-  .ob-step[data-state="current"] { box-shadow: inset 0 3px 0 var(--color-accent); }
   .ob-s { grid-column: 1; }
   .ob-l .deva { display: none; }
 }

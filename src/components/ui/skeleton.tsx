@@ -1,4 +1,6 @@
+"use client";
 import type { CSSProperties } from "react";
+import { useL } from "@/lib/ui/lang";
 import { cx } from "@/lib/ui/cx";
 
 interface BoxProps {
@@ -55,7 +57,9 @@ export interface SkeletonProps {
 }
 
 /** Placeholder in the shape of what is loading. Announces itself once; the grey shapes are hidden from readers. */
-export function Skeleton({ shape, count, cols, height, label = "Loading" }: SkeletonProps) {
+export function Skeleton({ shape, count, cols, height, label }: SkeletonProps) {
+  const l = useL();
+  label ??= l("Loading", "लोड हो रहा है", "Load ho raha hai");
   let body;
   if (shape === "line") body = <SkeletonLine />;
   else if (shape === "block") body = <SkeletonBlock height={height} />;

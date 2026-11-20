@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useL } from "@/lib/ui/lang";
+import { describeRec } from "@/lib/ui/rec-copy";
 import { Badge, Button, EmptyState, Table } from "@/components/ui";
 import { num, rupees } from "@/lib/format";
 import { DueBadge } from "./due-badge";
@@ -18,7 +20,14 @@ export interface VendorDetailProps {
 }
 
 /** One supplier: terms, open bills, their rate changes, their orders. The API has no payment history or product list, so none is shown. */
-export function VendorDetail({ row, data, nameOf, onClose, takeFocus }: VendorDetailProps) {
+export function VendorDetail({
+  row,
+  data,
+  nameOf,
+  onClose,
+  takeFocus,
+}: VendorDetailProps) {
+  const l = useL();
   const head = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (takeFocus) head.current?.focus();
@@ -27,8 +36,16 @@ export function VendorDetail({ row, data, nameOf, onClose, takeFocus }: VendorDe
   const v = row.vendor;
   const changes = data.priceChanges.filter((c) => c.vendorId === v.id);
   const orders = data.purchaseOrders.filter((o) => o.vendorId === v.id);
-  const switches = data.recommendations.filter((r) => r.type === "VENDOR_SWITCH" && (r.facts.from === v.name || r.facts.to === v.name));
-  const flagged = new Set(data.recommendations.filter((r) => r.type === "PAYABLE_DUE").map((r) => r.id.slice(r.id.indexOf(":") + 1)));
+  const switches = data.recommendations.filter(
+    (r) =>
+      r.type === "VENDOR_SWITCH" &&
+      (r.facts.from === v.name || r.facts.to === v.name),
+  );
+  const flagged = new Set(
+    data.recommendations
+      .filter((r) => r.type === "PAYABLE_DUE")
+      .map((r) => r.id.slice(r.id.indexOf(":") + 1)),
+  );
   const noop = () => undefined;
 
   return (
@@ -40,60 +57,87 @@ export function VendorDetail({ row, data, nameOf, onClose, takeFocus }: VendorDe
           </h2>
           <div className="stk-title-meta">
             {v.phone ? (
-              <a className="sup-tel" href={`tel:${v.phone.replace(/[^+\d]/g, "")}`}>
+              <a
+                className="sup-tel"
+                href={`tel:${v.phone.replace(/[^+\d]/g, "")}`}
+              >
                 {v.phone}
               </a>
             ) : null}
             <span>
-              Credit {num(v.paymentTermsDays)} din, delivery {num(v.leadTimeDays)} din
+              {l("Credit", "उधार", "Credit")} {num(v.paymentTermsDays)}{" "}
+              {l("days", "दिन", "din")}, {l("delivery", "डिलीवरी", "delivery")}{" "}
+              {num(v.leadTimeDays)} {l("days", "दिन", "din")}
             </span>
           </div>
         </div>
         <Button variant="quiet" onClick={onClose}>
-          Band karo
+          {l("Close", "बंद करें", "Band karo")}
         </Button>
       </div>
 
       <div className="sup-detail-cols">
         <section className="sup-sec" aria-labelledby="sup-bills">
           <h3 id="sup-bills" className="stk-h3">
-            Khule bills
+            {l("Open bills", "खुले बिल", "Khule bills")}
           </h3>
           {row.bills.length === 0 ? (
-            <EmptyState title="Is supplier ka kuch baaki nahi" />
+            <EmptyState
+              title={l(
+                "Nothing due to this supplier",
+                "इस सप्लायर का कुछ बाक़ी नहीं",
+                "Is supplier ka kuch baaki nahi",
+              )}
+            />
           ) : (
-            <Table caption={`Open bills of ${v.name}`} dense>
+            <Table
+              caption={l(
+                `Open bills of ${v.name}`,
+                `${v.name} के खुले बिल`,
+                `${v.name} ke khule bills`,
+              )}
+              dense
+            >
               <thead>
                 <tr>
-                  <th scope="col">Bill</th>
-                  <th scope="col">Due</th>
+                  <th scope="col">{l("Bill", "बिल", "Bill")}</th>
+                  <th scope="col">{l("Due", "देय", "Due")}</th>
                   <th scope="col" className="num">
-                    Amount
+                    {l("Amount", "रक़म", "Amount")}
                   </th>
-                  <th scope="col">Status</th>
+                  <th scope="col">{l("Status", "स्थिति", "Status")}</th>
                 </tr>
               </thead>
               <tbody>
                 {row.bills.map((b) => (
                   <tr key={b.purchaseId}>
-                    <td data-label="Bill" data-primary="">
+                    <td data-label={l("Bill", "बिल", "Bill")} data-primary="">
                       {b.invoiceNo ?? b.purchaseId}
                     </td>
-                    <td data-label="Due">
+                    <td data-label={l("Due", "देय", "Due")}>
                       <DueBadge bill={b} flagged={flagged.has(b.purchaseId)} />
                     </td>
-                    <td className="num" data-label="Amount">
+                    <td
+                      className="num"
+                      data-label={l("Amount", "रक़म", "Amount")}
+                    >
                       {rupees(b.amountPaise)}
                     </td>
-                    <td data-label="Status">
-                      <Badge tone={b.status === "partial" ? "info" : "neutral"}>{b.status === "partial" ? "Kuch diya" : "Baaki"}</Badge>
+                    <td data-label={l("Status", "स्थिति", "Status")}>
+                      <Badge tone={b.status === "partial" ? "info" : "neutral"}>
+                        {b.status === "partial"
+                          ? l("Part paid", "कुछ दिया", "Kuch diya")
+                          : l("Due", "बाक़ी", "Baaki")}
+                      </Badge>
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td data-label="Bill">Kul baaki</td>
+                  <td data-label="Bill">
+                    {l("Total due", "कुल बाक़ी", "Kul baaki")}
+                  </td>
                   <td data-nolabel="" />
                   <td className="num" data-label="Amount">
                     {rupees(row.outstandingPaise)}
@@ -106,16 +150,37 @@ export function VendorDetail({ row, data, nameOf, onClose, takeFocus }: VendorDe
         </section>
 
         <div className="sup-regions sup-regions-in">
-          <PriceChanges changes={changes} vendors={[v]} loading={false} error={undefined} onRetry={noop} nameOf={nameOf} single heading="Iske rate badle" />
-          <PurchaseOrders orders={orders} vendors={[v]} loading={false} error={undefined} onRetry={noop} single heading="Iske orders" />
+          <PriceChanges
+            changes={changes}
+            vendors={[v]}
+            loading={false}
+            error={undefined}
+            onRetry={noop}
+            nameOf={nameOf}
+            single
+            heading={l("Its rate changes", "इसके रेट बदलाव", "Iske rate badle")}
+          />
+          <PurchaseOrders
+            orders={orders}
+            vendors={[v]}
+            loading={false}
+            error={undefined}
+            onRetry={noop}
+            single
+            heading={l("Its orders", "इसके ऑर्डर", "Iske orders")}
+          />
           {switches.length > 0 ? (
             <section className="sup-sec" aria-labelledby="sup-switch">
               <h3 id="sup-switch" className="stk-h3">
-                Saste supplier ka suggestion
+                {l(
+                  "A cheaper supplier suggestion",
+                  "सस्ते सप्लायर का सुझाव",
+                  "Saste supplier ka suggestion",
+                )}
               </h3>
               <ul className="sup-lines">
                 {switches.map((s) => (
-                  <li key={s.id}>{s.title}</li>
+                  <li key={s.id}>{describeRec(s, l, rupees).title}</li>
                 ))}
               </ul>
             </section>

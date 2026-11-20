@@ -83,7 +83,6 @@
 .sb-roz .tbl td { padding-block: var(--space-sm); }
 .sb-amt { font-size: var(--text-lg); font-weight: 700; }
 .sb-roz .tbl tr[data-newest] td { background: var(--color-paper-3); }
-.sb-roz .tbl tr[data-newest] td:first-child { box-shadow: inset 3px 0 0 var(--color-accent); }
 .sb-sub { display: block; color: var(--color-muted); font-size: var(--text-sm); font-weight: 400; }
 .sb-run-sub { display: none; }
 @media (max-width: 40rem) { .sb-run-col { display: none; } .sb-run-sub { display: block; } .sb-roz .tbl { font-size: var(--text-sm); } .sb-roz .tbl th, .sb-roz .tbl td { padding-inline: var(--space-xs); } .sb-amt { font-size: var(--text-md); } }

@@ -21,14 +21,27 @@ export function useLeaveGuard(active: boolean) {
       e.returnValue = true;
     };
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (
+        e.defaultPrevented ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey
+      )
+        return;
       if (!(e.target instanceof Element)) return;
       const a = e.target.closest("a[href]");
       if (!(a instanceof HTMLAnchorElement)) return;
-      if ((a.target && a.target !== "_self") || a.hasAttribute("download")) return;
+      if ((a.target && a.target !== "_self") || a.hasAttribute("download"))
+        return;
       const url = new URL(a.href, window.location.href);
       if (url.origin !== window.location.origin) return;
-      if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+      if (
+        url.pathname === window.location.pathname &&
+        url.search === window.location.search
+      )
+        return;
       e.preventDefault();
       e.stopPropagation();
       setTarget(`${url.pathname}${url.search}${url.hash}`);

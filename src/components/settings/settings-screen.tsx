@@ -1,6 +1,13 @@
 "use client";
 
-import { ErrorState, PageHeader, SkeletonBlock, SkeletonLine } from "@/components/ui";
+import { useL } from "@/lib/ui/lang";
+import { tt } from "./settings-i18n";
+import {
+  ErrorState,
+  PageHeader,
+  SkeletonBlock,
+  SkeletonLine,
+} from "@/components/ui";
 import { useApi } from "@/lib/ui/api";
 import { SettingsEditor, type SettingsPayload } from "./settings-editor";
 
@@ -43,20 +50,31 @@ function SettingsSkeleton() {
 
 /** Settings screen: loading skeleton, error with retry, then the editor. There is no empty state: the API always returns every setting. */
 export function SettingsScreen() {
-  const { data, error, loading, refetch } = useApi<SettingsPayload>("/api/settings");
+  const l = useL();
+  const { data, error, loading, refetch } =
+    useApi<SettingsPayload>("/api/settings");
 
   if (!data && error) {
     return (
       <>
         <PageHeader title="Settings" hindi="सेटिंग" />
-        <ErrorState title="Could not load your settings" error={error} onRetry={refetch} retrying={loading} />
+        <ErrorState
+          title={tt("Could not load your settings", l)}
+          error={error}
+          onRetry={refetch}
+          retrying={loading}
+        />
       </>
     );
   }
   if (!data) {
     return (
       <>
-        <PageHeader title="Settings" hindi="सेटिंग" description="Loading your thresholds." />
+        <PageHeader
+          title="Settings"
+          hindi="सेटिंग"
+          description={tt("Loading your thresholds.", l)}
+        />
         <SettingsSkeleton />
       </>
     );

@@ -59,7 +59,7 @@
 .sup-regions { display: grid; gap: var(--space-xl); margin-top: var(--space-xl); }
 .sup-sec { display: grid; gap: var(--space-sm); min-width: 0; }
 .sup-sec > h2 { max-width: none; }
-.sup-detail { display: grid; gap: var(--space-lg); margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 3px solid var(--color-accent); }
+.sup-detail { display: grid; gap: var(--space-lg); margin-top: var(--space-xl); padding-top: var(--space-lg); }
 .sup-detail-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-sm) var(--space-lg); }
 .sup-detail-head h2 { max-width: none; }
 .sup-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-lg) var(--space-xl); align-items: start; }

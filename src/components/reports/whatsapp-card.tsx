@@ -1,7 +1,15 @@
 "use client";
 
+import { useL, type L } from "@/lib/ui/lang";
 import { useEffect, useState } from "react";
-import { Badge, Button, Field, Input, useToast, type BadgeTone } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Field,
+  Input,
+  useToast,
+  type BadgeTone,
+} from "@/components/ui";
 import { postJson, toApiError, useApi } from "@/lib/ui/api";
 import { istStamp } from "@/lib/ui/dates";
 
@@ -10,7 +18,14 @@ interface WaStatusPayload {
   webhookReady: boolean;
   number: string | null;
   windowOpenUntil: string | null;
-  messages: { id: string; kind: string; preview: string; status: string; errorText: string | null; at: string }[];
+  messages: {
+    id: string;
+    kind: string;
+    preview: string;
+    status: string;
+    errorText: string | null;
+    at: string;
+  }[];
 }
 
 interface SendResult {
@@ -20,14 +35,28 @@ interface SendResult {
   notice?: string;
 }
 
-const STATUS: Record<string, { label: string; tone: BadgeTone }> = {
-  sending: { label: "Bhej rahe hain", tone: "info" },
-  sent: { label: "Bhej diya", tone: "info" },
-  delivered: { label: "Phone par pahunch gaya", tone: "success" },
-  read: { label: "Padh liya", tone: "success" },
-  failed: { label: "Nahi gaya", tone: "danger" },
-};
-const KIND: Record<string, string> = { report: "Report", template: "Chat kholne ka message", reply: "Bot ka jawab", menu: "Menu" };
+const statusMeta = (
+  l: L,
+): Record<string, { label: string; tone: BadgeTone }> => ({
+  sending: { label: l("Sending", "भेज रहे हैं", "Bhej rahe hain"), tone: "info" },
+  sent: { label: l("Sent", "भेज दिया", "Bhej diya"), tone: "info" },
+  delivered: {
+    label: l("Delivered to phone", "फ़ोन पर पहुँच गया", "Phone par pahunch gaya"),
+    tone: "success",
+  },
+  read: { label: l("Read", "पढ़ लिया", "Padh liya"), tone: "success" },
+  failed: { label: l("Not delivered", "नहीं गया", "Nahi gaya"), tone: "danger" },
+});
+const kindMeta = (l: L): Record<string, string> => ({
+  report: l("Report", "रिपोर्ट", "Report"),
+  template: l(
+    "Chat-opening message",
+    "चैट खोलने का संदेश",
+    "Chat kholne ka message",
+  ),
+  reply: l("Bot reply", "बॉट का जवाब", "Bot ka jawab"),
+  menu: l("Menu", "मेन्यू", "Menu"),
+});
 
 /** Still on its way: keep checking. Delivered/read/failed are final. */
 const inFlight = (s?: string) => s === "sending" || s === "sent";
@@ -37,6 +66,7 @@ const inFlight = (s?: string) => s === "sending" || s === "sent";
  * calls our own routes. "Delivered" and "read" come from Meta's webhook, so without it the status stops at "Bhej diya".
  */
 export function WhatsAppCard() {
+  const l = useL();
   const toast = useToast();
   const state = useApi<WaStatusPayload>("/api/whatsapp/status");
   const { data, refetch } = state;
@@ -57,9 +87,15 @@ export function WhatsAppCard() {
     setSaving(true);
     setPhoneError(null);
     try {
-      const r = await postJson<{ number: string }>("/api/onboarding/whatsapp", { phone });
+      const r = await postJson<{ number: string }>("/api/onboarding/whatsapp", {
+        phone,
+      });
       setPhone("");
-      toast.push({ title: "Number save ho gaya", detail: r.number, tone: "success" });
+      toast.push({
+        title: l("Number saved", "नंबर सेव हो गया", "Number save ho gaya"),
+        detail: r.number,
+        tone: "success",
+      });
       refetch();
     } catch (e) {
       setPhoneError(toApiError(e).message);
@@ -75,14 +111,38 @@ export function WhatsAppCard() {
       const r = await postJson<SendResult>("/api/whatsapp/send-report");
       if (r.kind === "template") {
         setNotice(r.notice ?? null);
-        toast.push({ title: "Report abhi nahi gaya", detail: r.notice, tone: "neutral" });
+        toast.push({
+          title: l(
+            "Report not sent yet",
+            "रिपोर्ट अभी नहीं गई",
+            "Report abhi nahi gaya",
+          ),
+          detail: r.notice,
+          tone: "neutral",
+        });
       } else {
-        toast.push({ title: "Report bhej di", detail: "Status neeche dikh raha hai.", tone: "success" });
+        toast.push({
+          title: l("Report sent", "रिपोर्ट भेज दी", "Report bhej di"),
+          detail: l(
+            "The status shows below.",
+            "स्थिति नीचे दिख रही है।",
+            "Status neeche dikh raha hai.",
+          ),
+          tone: "success",
+        });
       }
     } catch (e) {
       const err = toApiError(e);
       setNotice(err.message);
-      toast.push({ title: "WhatsApp par nahi gayi", detail: err.message, tone: "error" });
+      toast.push({
+        title: l(
+          "Did not reach WhatsApp",
+          "WhatsApp पर नहीं गई",
+          "WhatsApp par nahi gayi",
+        ),
+        detail: err.message,
+        tone: "error",
+      });
     } finally {
       setSending(false);
       refetch();
@@ -95,37 +155,106 @@ export function WhatsAppCard() {
   return (
     <section className="wa-card" aria-labelledby="wa-title">
       <div className="wa-head">
-        <h2 id="wa-title">WhatsApp par report</h2>
-        <Button variant="primary" onClick={sendReport} loading={sending} disabled={!canSend}>
-          Send Report on WhatsApp
+        <h2 id="wa-title">
+          {l("Report on WhatsApp", "WhatsApp पर रिपोर्ट", "WhatsApp par report")}
+        </h2>
+        <Button
+          variant="primary"
+          onClick={sendReport}
+          loading={sending}
+          disabled={!canSend}
+        >
+          {l(
+            "Send report on WhatsApp",
+            "WhatsApp पर रिपोर्ट भेजें",
+            "WhatsApp par report bhejo",
+          )}
         </Button>
       </div>
 
-      {!data && !state.error ? <p className="wa-note">Check kar rahe hain…</p> : null}
-      {state.error ? <p className="wa-note wa-bad" role="alert">WhatsApp ki jaankari nahi aa payi: {state.error.message}</p> : null}
+      {!data && !state.error ? (
+        <p className="wa-note">
+          {l("Checking…", "जाँच रहे हैं…", "Check kar rahe hain…")}
+        </p>
+      ) : null}
+      {state.error ? (
+        <p className="wa-note wa-bad" role="alert">
+          {l(
+            "Could not get WhatsApp details",
+            "WhatsApp की जानकारी नहीं आ पाई",
+            "WhatsApp ki jaankari nahi aa payi",
+          )}
+          : {state.error.message}
+        </p>
+      ) : null}
 
       {data && !configured ? (
         <p className="wa-note wa-bad" role="status">
-          WhatsApp abhi set up nahi hai. <code>WHATSAPP_ACCESS_TOKEN</code> aur <code>WHATSAPP_PHONE_NUMBER_ID</code> .env mein daalo. Steps: <code>docs/WHATSAPP-SETUP.md</code>.
+          {l(
+            "WhatsApp is not set up yet. Put",
+            "WhatsApp अभी सेट नहीं है। ये दोनों",
+            "WhatsApp abhi set up nahi hai.",
+          )}{" "}
+          <code>WHATSAPP_ACCESS_TOKEN</code> {l("and", "और", "aur")}{" "}
+          <code>WHATSAPP_PHONE_NUMBER_ID</code>{" "}
+          {l("in .env. Steps:", ".env में डालें। चरण:", ".env mein daalo. Steps:")}{" "}
+          <code>docs/WHATSAPP-SETUP.md</code>.
         </p>
       ) : null}
 
       {data ? (
         <>
           <div className="wa-row">
-            <Field label="Aapka WhatsApp number" hint={data.number ? `Abhi saved: ${data.number}` : "10 digit number. Meta test list mein verify kiya hua hona chahiye."} error={phoneError}>
-              <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Field
+              label={l(
+                "Your WhatsApp number",
+                "आपका WhatsApp नंबर",
+                "Aapka WhatsApp number",
+              )}
+              hint={
+                data.number
+                  ? l(
+                      `Saved now: ${data.number}`,
+                      `अभी सेव है: ${data.number}`,
+                      `Abhi saved: ${data.number}`,
+                    )
+                  : l(
+                      "A 10-digit number, verified in the Meta test list.",
+                      "10 अंकों का नंबर, Meta टेस्ट सूची में सत्यापित होना चाहिए।",
+                      "10 digit number. Meta test list mein verify kiya hua hona chahiye.",
+                    )
+              }
+              error={phoneError}
+            >
+              <Input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="98765 43210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </Field>
             <Button onClick={save} loading={saving} disabled={!phone.trim()}>
-              {data.number ? "Number badlo" : "Number save karo"}
+              {data.number
+                ? l("Change number", "नंबर बदलें", "Number badlo")
+                : l("Save number", "नंबर सेव करें", "Number save karo")}
             </Button>
           </div>
 
           {data.number ? (
             <p className="wa-note">
               {data.windowOpenUntil
-                ? `Chat khula hai, ${istStamp(data.windowOpenUntil)} tak report seedha jayegi.`
-                : "Chat band hai. Pehle phone se is number ko 'Hi' bhejo, phir Send dabao."}
+                ? l(
+                    `The chat is open, the report will go straight until ${istStamp(data.windowOpenUntil)}.`,
+                    `चैट खुली है, ${istStamp(data.windowOpenUntil)} तक रिपोर्ट सीधे जाएगी।`,
+                    `Chat khula hai, ${istStamp(data.windowOpenUntil)} tak report seedha jayegi.`,
+                  )
+                : l(
+                    "The chat is closed. First send 'Hi' to this number from your phone, then press Send.",
+                    "चैट बंद है। पहले फ़ोन से इस नंबर को 'Hi' भेजें, फिर भेजें दबाएँ।",
+                    "Chat band hai. Pehle phone se is number ko 'Hi' bhejo, phir Send dabao.",
+                  )}
             </p>
           ) : null}
 
@@ -136,17 +265,27 @@ export function WhatsAppCard() {
           ) : null}
 
           {data.messages.length ? (
-            <ul className="wa-log" aria-label="Pichle messages">
+            <ul
+              className="wa-log"
+              aria-label={l("Earlier messages", "पिछले संदेश", "Pichle messages")}
+            >
               {data.messages.map((m) => {
-                const s = STATUS[m.status] ?? { label: m.status, tone: "neutral" as BadgeTone };
+                const s = statusMeta(l)[m.status] ?? {
+                  label: m.status,
+                  tone: "neutral" as BadgeTone,
+                };
                 return (
                   <li key={m.id}>
-                    <span className="wa-kind">{KIND[m.kind] ?? m.kind}</span>
+                    <span className="wa-kind">
+                      {kindMeta(l)[m.kind] ?? m.kind}
+                    </span>
                     <time dateTime={m.at} className="num">
                       {istStamp(m.at)}
                     </time>
                     <Badge tone={s.tone}>{s.label}</Badge>
-                    {m.status === "failed" && m.errorText ? <span className="wa-why">{m.errorText}</span> : null}
+                    {m.status === "failed" && m.errorText ? (
+                      <span className="wa-why">{m.errorText}</span>
+                    ) : null}
                   </li>
                 );
               })}
@@ -154,7 +293,13 @@ export function WhatsAppCard() {
           ) : null}
 
           {!data.webhookReady && data.messages.length ? (
-            <p className="wa-note">Webhook set nahi hai, isliye status &ldquo;Bhej diya&rdquo; par ruk jayega. &ldquo;Pahunch gaya&rdquo; aur &ldquo;Padh liya&rdquo; ke liye webhook jodo.</p>
+            <p className="wa-note">
+              {l(
+                "The webhook is not set, so the status will stop at “Sent”. Connect the webhook for “Delivered” and “Read”.",
+                "वेबहुक सेट नहीं है, इसलिए स्थिति “भेज दिया” पर रुक जाएगी। “पहुँच गया” और “पढ़ लिया” के लिए वेबहुक जोड़ें।",
+                "Webhook set nahi hai, isliye status “Bhej diya” par ruk jayega. “Pahunch gaya” aur “Padh liya” ke liye webhook jodo.",
+              )}
+            </p>
           ) : null}
         </>
       ) : null}
