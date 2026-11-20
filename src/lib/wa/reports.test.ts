@@ -3,8 +3,8 @@ import { generateSnapshot } from "../seed/generate";
 import { buildReport } from "../reports/build";
 import { khataOverview } from "../analytics/khata-risk";
 import { rupees } from "../format";
-import { customerReportText, recommendationReportText, reportTextFor, salesReportText, vendorReportText } from "./reports";
-import { intentOf, salesPeriod, MENU } from "./router";
+import { customerReportText, recommendationReportText, reportTextFor, salesReportText, vendorReportText, withoutFoot } from "./reports";
+import { MODULES, renderLeaf, menuEnv } from "../menu/menus";
 
 const snap = generateSnapshot();
 
@@ -55,27 +55,26 @@ describe("recommendation report", () => {
   });
 });
 
-describe("whatsapp wiring", () => {
-  it("routes the new asks", () => {
-    expect(intentOf("6", null)).toBe("sales");
-    expect(intentOf("sales report", null)).toBe("sales");
-    expect(intentOf("6 week", null)).toBe("sales");
-    expect(intentOf("7", null)).toBe("customers");
-    expect(intentOf("customer report", null)).toBe("customers");
-    expect(intentOf("8", null)).toBe("vendors");
-    expect(intentOf("vendor report", null)).toBe("vendors");
-    expect(intentOf("9", null)).toBe("recs");
-    expect(intentOf("suggestions", null)).toBe("recs");
-    expect(intentOf("1", null)).toBe("report");
-    expect(intentOf("aaj kitni sale hui", null)).toBe("agent");
+describe("report wiring in the menu tree", () => {
+  const env = menuEnv(snap);
+  it("each new report is a leaf the module menu lists", () => {
+    const want: [Parameters<typeof renderLeaf>[0], number, string][] = [["2", 6, "Supplier report"], ["3", 7, "Customer report"], ["4", 8, "Sales report"], ["5", 7, "Suggestions report"]];
+    for (const [k, n, head] of want) {
+      expect(MODULES[k].items).toHaveLength(n);
+      const leaf = renderLeaf(k, n, env);
+      expect(leaf?.text).toContain(head);
+      expect(leaf?.text).toContain("peeche");
+      expect(leaf?.text).not.toContain("Menu ke liye *Hi* likhiye");
+    }
   });
-  it("picks the sales period from words", () => {
-    expect(salesPeriod("6 week")).toBe("this_week");
-    expect(salesPeriod("sales month")).toBe("this_month");
-    expect(salesPeriod("6")).toBe("today");
+  it("no module offers more than 8 options, because 9 is Back", () => {
+    for (const m of Object.values(MODULES)) expect(m.items.length).toBeLessThanOrEqual(8);
   });
-  it("menu lists the new reports", () => {
-    for (const w of ["Sales report", "Customer report", "Supplier report", "Suggestions"]) expect(MENU).toContain(w);
+  it("withoutFoot drops only the closing line", () => {
+    const t = salesReportText(snap, "today");
+    expect(t).toContain("Menu ke liye *Hi* likhiye");
+    expect(withoutFoot(t)).not.toContain("Menu ke liye *Hi* likhiye");
+    expect(withoutFoot(t)).toContain("Sales report");
   });
   it("reportTextFor dispatches by kind", () => {
     expect(reportTextFor(snap, "customers")).toContain("Customer report");
@@ -106,62 +105,39 @@ describe("whatsapp formatting", () => {
   });
 });
 
-import { MENU_LIST, interactiveFor, textForTap } from "./interactive";
+import { MENU_LIST, interactiveFor, moduleList, textForTap, type Interactive } from "./interactive";
 describe("tappable messages", () => {
-  const all = ["Hi", "1", "2", "3", "4", "5", "6", "6 week", "6 month", "7", "8", "9", "aaj kitni sale hui"];
-  it("respects Meta's limits for buttons and lists", () => {
-    for (const t of all) {
-      const i = interactiveFor(t);
-      if (i.kind === "buttons") {
-        expect(i.buttons.length).toBeGreaterThan(0);
-        expect(i.buttons.length).toBeLessThanOrEqual(3);
-        for (const b of i.buttons) expect(b.title.length).toBeLessThanOrEqual(20);
-      } else {
-        expect(i.button.length).toBeLessThanOrEqual(20);
-        const rows = i.sections.flatMap((s) => s.rows);
-        expect(rows.length).toBeLessThanOrEqual(10);
-        for (const r of rows) {
-          expect(r.title.length).toBeLessThanOrEqual(24);
-          expect((r.description ?? "").length).toBeLessThanOrEqual(72);
-        }
+  const all = ["menu", "module:1", "module:2", "module:3", "module:4", "module:5", "4.1", "3.7", null];
+  const check = (i: Interactive) => {
+    if (i.kind === "buttons") {
+      expect(i.buttons.length).toBeGreaterThan(0);
+      expect(i.buttons.length).toBeLessThanOrEqual(3);
+      for (const b of i.buttons) expect(b.title.length).toBeLessThanOrEqual(20);
+    } else {
+      expect(i.button.length).toBeLessThanOrEqual(20);
+      const rows = i.sections.flatMap((s) => s.rows);
+      expect(rows.length).toBeLessThanOrEqual(10);
+      for (const r of rows) {
+        expect(r.title.length).toBeLessThanOrEqual(24);
+        expect((r.description ?? "").length).toBeLessThanOrEqual(72);
       }
     }
+  };
+  it("respects Meta limits for buttons and lists", () => {
+    for (const k of all) check(interactiveFor(k));
   });
-  it("greeting opens the menu list", () => expect(interactiveFor("Hi")).toBe(MENU_LIST));
-  it("every tap id goes to the intent it names", () => {
+  it("the main menu lists the five modules and a tap is the digit", () => {
+    expect(interactiveFor("menu")).toBe(MENU_LIST);
     const rows = MENU_LIST.kind === "list" ? MENU_LIST.sections.flatMap((s) => s.rows) : [];
-    const want: Record<string, string> = { "1": "report", "2": "stock", "3": "khata", "4": "suppliers", "5": "pdf", "6": "sales", "7": "customers", "8": "vendors", "9": "recs" };
-    for (const r of rows) expect(intentOf(textForTap(r.id), null)).toBe(want[r.id]);
-    for (const t of all) {
-      const i = interactiveFor(t);
-      if (i.kind === "buttons") for (const b of i.buttons) expect(intentOf(textForTap(b.id), null)).not.toBe("agent");
-    }
+    expect(rows.map((r) => r.id)).toEqual(["1", "2", "3", "4", "5"]);
+    expect(textForTap("3")).toBe("3");
     expect(textForTap("menu")).toBe("Hi");
   });
-  it("sales buttons move between periods", () => {
-    const ids = (t: string) => {
-      const i = interactiveFor(t);
-      return i.kind === "buttons" ? i.buttons.map((b) => b.id) : [];
-    };
-    expect(ids("6")).toEqual(["6 week", "6 month", "menu"]);
-    expect(ids("6 week")).toEqual(["6", "6 month", "menu"]);
-  });
-});
-
-import { freeTextIntent } from "./router";
-describe("typed questions without the AI", () => {
-  it("answers the common ones from the reports", () => {
-    expect(freeTextIntent("aaj kitni sale hui")).toBe("report");
-    expect(freeTextIntent("kya khatam hone wala hai")).toBe("stock");
-    expect(freeTextIntent("supplier ko kitna dena hai")).toBe("suppliers");
-    expect(freeTextIntent("kiska udhaar baaki hai")).toBe("khata");
-    expect(freeTextIntent("udhaar")).toBe("khata");
-    expect(freeTextIntent("sale is hafte ki")).toBe("sales");
-  });
-  it("leaves entries and customer-specific asks alone", () => {
-    expect(freeTextIntent("Suresh 300 udhaar likho")).toBeNull();
-    expect(freeTextIntent("udhaar kitna hai suresh ka")).toBeNull();
-    expect(freeTextIntent("namaste kaise ho")).toBeNull();
-    expect(freeTextIntent("")).toBeNull();
+  it("a module list offers every item and a way back", () => {
+    for (const k of ["1", "2", "3", "4", "5"] as const) {
+      const l = moduleList(k);
+      const ids = l.kind === "list" ? l.sections.flatMap((s) => s.rows.map((r) => r.id)) : [];
+      expect(ids).toEqual([...MODULES[k].items.map((_, i) => String(i + 1)), "9"]);
+    }
   });
 });

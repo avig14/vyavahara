@@ -1,8 +1,9 @@
 import { after } from "next/server";
-import { getDb } from "@/lib/db/client";
-import { applyWaStatus, claimInbound, getMerchantByPhone, touchInbound } from "@/lib/db/queries";
+import { flushWrites, getDb } from "@/lib/db/client";
+import { applyWaStatus } from "@/lib/db/queries";
 import { parseWebhook, verifySignature, waConfig } from "@/lib/wa/cloud";
-import { replyTo } from "@/lib/wa/router";
+import { metaChannel } from "@/lib/wa/channel";
+import { handleInbound } from "@/lib/wa/router";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -43,19 +44,13 @@ export async function POST(req: Request) {
   }
 
   const cfg = waConfig();
-  if (messages.length) {
+  if (messages.length && cfg) {
+    const ch = metaChannel(cfg);
     after(async () => {
-      for (const m of messages) {
-        try {
-          const merchant = await getMerchantByPhone(db, m.from);
-          if (!merchant) continue; // not our owner: ignore silently
-          const now = new Date();
-          await touchInbound(db, merchant.id, now);
-          if (!(await claimInbound(db, merchant.id, m.id, m.text ?? m.reply ?? `(${m.type})`))) continue; // Meta retry
-          if (cfg) await replyTo(db, merchant.id, m.from, m.text, m.reply, cfg, now);
-        } catch (e) {
-          console.error("[wa/webhook] inbound", e instanceof Error ? e.message : "unknown");
-        }
+      try {
+        for (const m of messages) await handleInbound(db, ch, { id: m.id, from: m.from, text: m.text ?? m.reply ?? null, media: null });
+      } finally {
+        await flushWrites();
       }
     });
   }

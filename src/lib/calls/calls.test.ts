@@ -177,9 +177,9 @@ import { numberAllowed } from "./dial";
 describe("demo allowlist", () => {
   it("is open when unset and strict when set", () => {
     expect(numberAllowed("919876543210", {})).toBe(true);
-    const env = { CALLS_ALLOWED_NUMBERS: "98765 43210, +91 91797 72540" };
+    const env = { CALLS_ALLOWED_NUMBERS: "98765 43210, +91 98765 00001" };
     expect(numberAllowed("919876543210", env)).toBe(true);
-    expect(numberAllowed("919179772540", env)).toBe(true);
+    expect(numberAllowed("919876500001", env)).toBe(true);
     expect(numberAllowed("919000000000", env)).toBe(false);
   });
 });

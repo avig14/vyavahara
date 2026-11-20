@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import { schema as s } from "./client";
+import { snapshotCache } from "./snapshot-cache";
 import type { Snapshot } from "../domain";
 import { applySettingsPatch, resolveSettings, type MerchantSettings } from "../settings";
 
@@ -28,10 +29,60 @@ export async function loadSettings(db: Db, merchantId: string): Promise<Merchant
   return resolveSettings(row.settings);
 }
 
-/** Load everything the analytics need for one merchant. `historyDays` bounds the big tables. */
+/** The full history window. Short `historyDays` loads (settings/products only) skip the cache: they are small. */
+const FULL_HISTORY_DAYS = 200;
+/** A cached snapshot is re-dated to the caller's `now` (rows are the same). A clock that far away is a test or a simulation: load fresh. */
+const MAX_CLOCK_SKEW_MS = 6 * 3_600_000;
+
+async function dataVersion(db: Db, merchantId: string): Promise<number> {
+  const [row] = await db.select({ v: s.merchants.dataVersion }).from(s.merchants).where(eq(s.merchants.id, merchantId));
+  if (!row) throw new Error("merchant not found");
+  return row.v;
+}
+
+/**
+ * Load everything the analytics need for one merchant. `historyDays` bounds the big tables.
+ * The full load (the default) is cached per server instance and checked against `merchants.data_version`
+ * with a few-byte query, so an unchanged shop costs ~100 bytes instead of ~2.5 MB of Neon transfer.
+ * Callers get their own `now`; the row arrays are shared, so never mutate them (nothing does).
+ */
 export async function loadSnapshot(db: Db, merchantId: string, opts: { now?: Date; historyDays?: number } = {}): Promise<Snapshot> {
   const now = opts.now ?? new Date();
-  const since = new Date(now.getTime() - (opts.historyDays ?? 200) * 86_400_000);
+  if (opts.historyDays !== undefined) return loadSnapshotFresh(db, merchantId, { now, historyDays: opts.historyDays });
+  const snap = await snapshotCache.get<Snapshot>(
+    merchantId,
+    () => dataVersion(db, merchantId),
+    () => loadSnapshotFresh(db, merchantId, { now, historyDays: FULL_HISTORY_DAYS }),
+  );
+  if (Math.abs(snap.now.getTime() - now.getTime()) > MAX_CLOCK_SKEW_MS) return loadSnapshotFresh(db, merchantId, { now, historyDays: FULL_HISTORY_DAYS });
+  return snap.now.getTime() === now.getTime() ? snap : { ...snap, now };
+}
+
+/** The columns the analytics read. Leaving out ids and bookkeeping columns cuts the two biggest tables by about a third. */
+const txnCols = {
+  id: s.transactions.id,
+  customerId: s.transactions.customerId,
+  amountPaise: s.transactions.amountPaise,
+  method: s.transactions.method,
+  kind: s.transactions.kind,
+  utr: s.transactions.utr,
+  source: s.transactions.source,
+  createdAt: s.transactions.createdAt,
+};
+const saleItemCols = {
+  transactionId: s.saleItems.transactionId,
+  productId: s.saleItems.productId,
+  qty: s.saleItems.qty,
+  unitPricePaise: s.saleItems.unitPricePaise,
+  unitCostPaise: s.saleItems.unitCostPaise,
+  confidence: s.saleItems.confidence,
+  createdAt: s.saleItems.createdAt,
+};
+
+/** Always reads from the database. Prefer `loadSnapshot`. */
+async function loadSnapshotFresh(db: Db, merchantId: string, opts: { now: Date; historyDays: number }): Promise<Snapshot> {
+  const now = opts.now;
+  const since = new Date(now.getTime() - opts.historyDays * 86_400_000);
   const mine = <T extends { merchantId: unknown }>(t: T) => eq(t.merchantId as never, merchantId);
 
   const [merchant] = await db.select().from(s.merchants).where(eq(s.merchants.id, merchantId));
@@ -44,8 +95,8 @@ export async function loadSnapshot(db: Db, merchantId: string, opts: { now?: Dat
       db.select().from(s.purchases).where(mine(s.purchases)),
       db.select().from(s.vendorPayments).where(mine(s.vendorPayments)),
       db.select().from(s.customers).where(mine(s.customers)),
-      db.select().from(s.transactions).where(and(mine(s.transactions), gte(s.transactions.createdAt, since))),
-      db.select().from(s.saleItems).where(and(mine(s.saleItems), gte(s.saleItems.createdAt, since))),
+      db.select(txnCols).from(s.transactions).where(and(mine(s.transactions), gte(s.transactions.createdAt, since))),
+      db.select(saleItemCols).from(s.saleItems).where(and(mine(s.saleItems), gte(s.saleItems.createdAt, since))),
       db.select().from(s.khataEntries).where(mine(s.khataEntries)),
       db.select().from(s.expenses).where(mine(s.expenses)),
       db.select().from(s.lostDemand).where(and(mine(s.lostDemand), gte(s.lostDemand.createdAt, since))),
@@ -445,7 +496,7 @@ export async function touchInbound(db: Db, merchantId: string, now: Date) {
     .where(eq(s.merchants.id, merchantId));
 }
 
-export async function startWaMessage(db: Db, merchantId: string, kind: "report" | "template" | "reply" | "menu", preview: string): Promise<string> {
+export async function startWaMessage(db: Db, merchantId: string, kind: "report" | "template" | "reply" | "menu" | "alert" | "pdf", preview: string): Promise<string> {
   const [row] = await db.insert(s.waMessages).values({ merchantId, direction: "out", kind, preview: preview.slice(0, 120), status: "sending" }).returning({ id: s.waMessages.id });
   return row.id;
 }
@@ -479,4 +530,91 @@ export async function applyWaStatus(db: Db, wamid: string, status: Exclude<WaSta
 
 export async function listWaMessages(db: Db, merchantId: string, limit = 8) {
   return db.select().from(s.waMessages).where(and(eq(s.waMessages.merchantId, merchantId), eq(s.waMessages.direction, "out"))).orderBy(desc(s.waMessages.createdAt)).limit(limit);
+}
+
+/** Outbound messages in the last 24h that were not rejected: what the provider's daily cap counts. */
+export async function countOutboundSince(db: Db, merchantId: string, since: Date): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(s.waMessages)
+    .where(and(eq(s.waMessages.merchantId, merchantId), eq(s.waMessages.direction, "out"), gte(s.waMessages.createdAt, since), sql`${s.waMessages.status} <> 'failed'`));
+  return row?.n ?? 0;
+}
+
+/* ---------------- menu session (where the owner is in the WhatsApp menu) ---------------- */
+
+export interface WaSession {
+  /** "" = main menu, "1".."5" = a module's menu */
+  menuPath: string;
+  /** what the bot is waiting for next, if anything (see menu/flows.ts) */
+  context: unknown;
+  updatedAt: Date | null;
+}
+
+export async function getWaSession(db: Db, merchantId: string): Promise<WaSession> {
+  const [row] = await db.select().from(s.waSessions).where(eq(s.waSessions.merchantId, merchantId));
+  return { menuPath: row?.menuPath ?? "", context: row?.context ?? null, updatedAt: row?.updatedAt ?? null };
+}
+
+export async function setWaSession(db: Db, merchantId: string, v: { menuPath: string; context: unknown }, now = new Date()) {
+  await db
+    .insert(s.waSessions)
+    .values({ merchantId, menuPath: v.menuPath, context: v.context ?? null, updatedAt: now })
+    .onConflictDoUpdate({ target: s.waSessions.merchantId, set: { menuPath: v.menuPath, context: v.context ?? null, updatedAt: now } });
+}
+
+/* ---------------- proactive alerts (PRD A9: red khata) ---------------- */
+
+export type AlertStatus = "queued" | "sent" | "delivered_on_next" | "dismissed";
+
+export interface KhataAlertPayload {
+  name: string;
+  outstandingPaise: number;
+  oldestUnpaidDays: number;
+  repaid90Pct: number;
+  reasons: string[];
+  creditBlocked: boolean;
+}
+
+/** Latest alert for this customer created at or after `since` (the cool-down check). */
+export async function recentAlertFor(db: Db, merchantId: string, subjectId: string, since: Date) {
+  const [row] = await db
+    .select({ id: s.alerts.id, createdAt: s.alerts.createdAt })
+    .from(s.alerts)
+    .where(and(eq(s.alerts.merchantId, merchantId), eq(s.alerts.kind, "khata_red"), eq(s.alerts.subjectId, subjectId), gte(s.alerts.createdAt, since)))
+    .orderBy(desc(s.alerts.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function createAlert(db: Db, merchantId: string, subjectId: string, payload: KhataAlertPayload, status: "queued" | "sent", now = new Date()) {
+  const [row] = await db
+    .insert(s.alerts)
+    .values({ merchantId, kind: "khata_red", subjectId, payload, status, createdAt: now, sentAt: status === "sent" ? now : null })
+    .returning();
+  return row;
+}
+
+export async function queuedAlerts(db: Db, merchantId: string) {
+  return db.select().from(s.alerts).where(and(eq(s.alerts.merchantId, merchantId), eq(s.alerts.status, "queued"))).orderBy(s.alerts.createdAt);
+}
+
+export async function setAlertStatus(db: Db, ids: string[], status: AlertStatus, now = new Date()) {
+  if (!ids.length) return;
+  await db.update(s.alerts).set({ status, sentAt: status === "dismissed" ? null : now }).where(inArray(s.alerts.id, ids));
+}
+
+export async function listAlerts(db: Db, merchantId: string, limit = 10) {
+  return db.select().from(s.alerts).where(eq(s.alerts.merchantId, merchantId)).orderBy(desc(s.alerts.createdAt)).limit(limit);
+}
+
+/** A customer's alert is moot once they are no longer red (paid, or the owner handled it): drop it from the queue. */
+export async function dismissQueuedFor(db: Db, merchantId: string, subjectIds: string[]) {
+  if (!subjectIds.length) return;
+  await db.update(s.alerts).set({ status: "dismissed" }).where(and(eq(s.alerts.merchantId, merchantId), eq(s.alerts.status, "queued"), inArray(s.alerts.subjectId, subjectIds)));
+}
+
+export async function getMerchantById(db: Db, merchantId: string) {
+  const [row] = await db.select().from(s.merchants).where(eq(s.merchants.id, merchantId)).limit(1);
+  return row ?? null;
 }

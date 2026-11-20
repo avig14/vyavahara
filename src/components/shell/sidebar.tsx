@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { useQueryParams } from "@/lib/ui/url-state";
 import { NAV_ITEMS, isCurrent } from "./nav";
 
@@ -11,6 +12,7 @@ const KEEP = ["period", "from", "to"] as const;
 export function Wordmark({ href = "/dashboard" }: { href?: string }) {
   return (
     <Link href={href} className="wordmark" aria-label="Vyavahāra, home">
+      <LogoMark size={36} className="wordmark-logo" />
       <span className="wordmark-latin">Vyavahāra</span>
       <span className="wordmark-deva deva" lang="hi">
         व्यवहार

@@ -114,6 +114,8 @@ export function WhatsappPreview() {
   const [error, setError] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const next = useRef(1);
+  /** where the chat is (main menu / inside a module / waiting for an answer). Kept here, never on the server. */
+  const chatState = useRef<unknown>(null);
   const started = useRef(false);
   /** set synchronously, so two taps in the same instant cannot both pass the busy check */
   const sending = useRef(false);
@@ -134,8 +136,8 @@ export function WhatsappPreview() {
     setMsgs((m) => [...m, { id: mine, from: "me", text: shown ?? t, at: new Date() }]);
     setBusy(true);
     try {
-      type Reply = { parts: string[]; interactive: Interactive; images?: WaImage[] };
-      const ask = () => postJson<Reply>("/api/whatsapp/simulate", { text: t });
+      type Reply = { parts: string[]; interactive: Interactive; images?: WaImage[]; state?: unknown };
+      const ask = () => postJson<Reply>("/api/whatsapp/simulate", { text: t, state: chatState.current });
       let r: Reply;
       try {
         r = await ask();
@@ -146,6 +148,7 @@ export function WhatsappPreview() {
         await new Promise((res) => setTimeout(res, 800));
         r = await ask();
       }
+      chatState.current = r.state ?? null;
       setMsgs((m) => m.map((x) => (x.id === mine ? { ...x, answered: true } : x)));
       for (const img of r.images ?? []) {
         await new Promise((res) => setTimeout(res, 350));
@@ -192,7 +195,7 @@ export function WhatsappPreview() {
       <PageHeader
         title="WhatsApp preview"
         hindi="व्हाट्सऐप"
-        description="Bot ka chat aise dikhta hai: buttons dabaiye ya likhiye. Wahi menu aur reports jo WhatsApp par jaate hain; kuch bhi Meta ko nahi bheja jaata."
+        description="Bot ka chat aise dikhta hai: buttons dabaiye ya likhiye. Wahi menu aur reports jo WhatsApp par jaate hain; kuch bhi kisi chat provider ko nahi bheja jaata, aur dukaan ka data badalta nahi."
       />
       <div className="wsim">
         <div className="wsim-phone" role="region" aria-label="WhatsApp chat preview">

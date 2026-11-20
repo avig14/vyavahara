@@ -3,11 +3,11 @@
  * Planning is pure (tested); `heard` / `paid` wire it to the DB. Audio is never stored: only the transcript and parsed items.
  */
 import type { Db } from "../db/client";
-import type { Product, Snapshot } from "../domain";
+import type { Product } from "../domain";
 import type { SoundboxParseT } from "../ingest/vision";
 import { buildMatcher } from "../ingest/match";
 import { reconcileBasket, type BasketLine } from "../ingest/reconcile";
-import { loadSnapshot, openSoundboxBaskets, recordLostDemand, recordSoundboxSale, saveSoundboxEvent } from "../db/queries";
+import { loadSettings, loadSnapshot, openSoundboxBaskets, recordLostDemand, recordSoundboxSale, saveSoundboxEvent } from "../db/queries";
 
 export interface HeardItem {
   productId: string;
@@ -108,8 +108,7 @@ export interface PaidResult extends PaymentPlan {
 
 /** A UPI payment landed. Reconcile with baskets held inside the hold window, then save. */
 export async function paid(db: Db, merchantId: string, amountPaise: number, now = new Date()): Promise<PaidResult> {
-  const snap: Pick<Snapshot, "settings"> = { settings: (await loadSnapshot(db, merchantId, { now, historyDays: 1 })).settings };
-  const cfg = snap.settings.ingest;
+  const cfg = (await loadSettings(db, merchantId)).ingest;
   const rows = await openSoundboxBaskets(db, merchantId, cfg.basketHoldMinutes, now);
   const baskets: HeldBasket[] = rows.map((r) => ({ id: r.id, items: ((r.parsed as { matched?: HeardItem[] } | null)?.matched ?? []) as HeardItem[] }));
   const plan = planPayment(baskets, amountPaise, cfg.basketTolerancePct);

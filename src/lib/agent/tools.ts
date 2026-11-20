@@ -8,10 +8,11 @@ import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { Snapshot, Customer } from "../domain";
 import { byId } from "../domain";
 import { rupees, num, daysLabel, toPaise } from "../format";
-import { MS_DAY, istDayStart, resolvePeriod, type PeriodName } from "../time";
+import { MS_DAY, istDayStart, type PeriodName } from "../time";
 import { buildReport, type ReportData } from "../reports/build";
 import { reportText } from "../reports/text";
-import { buildContext, detectRecommendations, primaryVendors, type RecContext } from "../analytics/recommendations";
+import { buildContext, detectRecommendations, type RecContext } from "../analytics/recommendations";
+import { deadStockView, lostSalesView, priceChanges, reorderLines as reorderLinesOf } from "../analytics/views";
 import { detectAnomalies } from "../analytics/anomalies";
 import { findAccountByName } from "../analytics/khata-risk";
 import { projectCashFlow, openPayables } from "../analytics/cashflow";
@@ -33,7 +34,7 @@ export interface AgentEnv {
   snap: Snapshot;
   store: AgentStore;
   attachments: Attachment[];
-  /** called with the tool name each time the model runs a tool (the Soundbox shows these live) */
+  /** called with the tool name each time the model runs a tool (Voice Saathi shows these) */
   onTool?: (name: string) => void;
 }
 
@@ -53,7 +54,7 @@ function customOf(a: PeriodArgs): { from: Date; to: Date } | undefined {
   return { from: istDayStart(a.from), to: new Date(istDayStart(a.to).getTime() + MS_DAY) };
 }
 
-function findCustomer(snap: Snapshot, q: string): Customer | null {
+export function findCustomer(snap: Snapshot, q: string): Customer | null {
   const s = q.trim().toLowerCase();
   if (!s) return null;
   const c = snap.customers;
@@ -61,7 +62,7 @@ function findCustomer(snap: Snapshot, q: string): Customer | null {
   return c.find((x) => n(x) === s) ?? c.find((x) => n(x).startsWith(s)) ?? c.find((x) => n(x).split(" ").some((w) => w.startsWith(s))) ?? c.find((x) => n(x).includes(s)) ?? null;
 }
 
-function findVendor(snap: Snapshot, q: string) {
+export function findVendor(snap: Snapshot, q: string) {
   const s = q.trim().toLowerCase();
   return snap.vendors.find((v) => v.name.toLowerCase().includes(s)) ?? null;
 }
@@ -116,14 +117,7 @@ export function buildTools(env: AgentEnv) {
   }
   const none = z.object({});
 
-  const reorderLines = (vendorName?: string) => {
-    const pv = primaryVendors(snap);
-    const vendors = byId(snap.vendors);
-    return ctx()
-      .forecasts.filter((f) => (f.status === "stockout" || f.status === "reorder") && f.suggestedOrderQty > 0)
-      .map((f) => ({ f, vendor: vendors.get(pv.get(f.productId) ?? "") ?? null }))
-      .filter((x) => !vendorName || x.vendor?.name.toLowerCase().includes(vendorName.toLowerCase()));
-  };
+  const reorderLines = (vendorName?: string) => reorderLinesOf(snap, ctx(), vendorName);
 
   return [
     /* ---------------- reports ---------------- */
@@ -179,22 +173,13 @@ export function buildTools(env: AgentEnv) {
     }),
 
     tool("get_lost_sales", "Sales lost because customers asked for out-of-stock items.", z.object(periodShape), (a) => {
-      const p = resolvePeriod(a.period ?? "last_7_days", snap.now, customOf(a));
-      const by = new Map<string, { qty: number; value: number }>();
-      for (const l of snap.lostDemand) {
-        if (l.createdAt < p.from || l.createdAt >= p.to) continue;
-        const c = by.get(l.productId) ?? { qty: 0, value: 0 };
-        c.qty += l.qty;
-        c.value += l.estValuePaise;
-        by.set(l.productId, c);
-      }
-      const rows = [...by.entries()].sort((x, y) => y[1].value - x[1].value);
-      return ok({ period: p.label, total: rupees(rows.reduce((s, [, v]) => s + v.value, 0)), items: rows.slice(0, 8).map(([id, v]) => ({ name: products.get(id)?.name ?? "Item", requests: num(v.qty, 0), value: rupees(v.value) })) });
+      const v = lostSalesView(snap, a.period ?? "last_7_days", customOf(a));
+      return ok({ period: v.label, total: rupees(v.totalPaise), items: v.items.slice(0, 8).map((x) => ({ name: x.name, requests: num(x.requests, 0), value: rupees(x.valuePaise) })) });
     }),
 
     tool("get_dead_stock", "Items with no recent sales and the money stuck in them (at cost).", none, () => {
-      const rows = ctx().forecasts.filter((f) => f.status === "dead").map((f) => ({ name: f.name, stock: num(f.stock, 1), unit: unitOf(f.productId), stuckPaise: Math.round(f.stock * (products.get(f.productId)?.costPaise ?? 0)) })).sort((a, b) => b.stuckPaise - a.stuckPaise);
-      return ok({ totalStuck: rupees(rows.reduce((s, r) => s + r.stuckPaise, 0)), items: rows.slice(0, 10).map((r) => ({ name: r.name, stock: r.stock, unit: r.unit, stuck: rupees(r.stuckPaise) })) });
+      const v = deadStockView(snap, ctx());
+      return ok({ totalStuck: rupees(v.totalStuckPaise), items: v.items.slice(0, 10).map((r) => ({ name: r.name, stock: num(r.stock, 1), unit: r.unit, stuck: rupees(r.stuckPaise) })) });
     }),
 
     tool("adjust_stock", "Change an item's stock by delta (+/-). Needs owner confirmation.", z.object({ product: z.string(), delta: z.number() }), async (a) => {
@@ -220,15 +205,9 @@ export function buildTools(env: AgentEnv) {
       return ok({ vendor: v.name, lines: items.length, forwardText: text });
     }),
 
-    tool("get_price_changes", "Vendor price increases/decreases versus the previous purchase.", none, () => {
-      const vendors = byId(snap.vendors);
-      const rows = snap.vendorProducts
-        .filter((x) => x.prevCostPaise && x.prevCostPaise !== x.lastCostPaise)
-        .map((x) => ({ item: products.get(x.productId)?.name ?? "Item", vendor: vendors.get(x.vendorId)?.name ?? "", from: x.prevCostPaise as number, to: x.lastCostPaise, pct: Math.round(((x.lastCostPaise - (x.prevCostPaise as number)) / (x.prevCostPaise as number)) * 1000) / 10 }))
-        .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct))
-        .slice(0, 10);
-      return ok({ items: rows.map((r) => ({ item: r.item, vendor: r.vendor, was: rupees(r.from), now: rupees(r.to), changePct: r.pct })) });
-    }),
+    tool("get_price_changes", "Vendor price increases/decreases versus the previous purchase.", none, () =>
+      ok({ items: priceChanges(snap).slice(0, 10).map((r) => ({ item: r.item, vendor: r.vendor, was: rupees(r.fromPaise), now: rupees(r.toPaise), changePct: r.pct })) }),
+    ),
 
     tool("record_vendor_payment", "Mark a vendor's oldest open bill as paid (full, or amount_rupees for a part payment).", z.object({ vendor: z.string(), amount_rupees: z.number().positive().optional() }), async (a) => {
       const v = findVendor(snap, a.vendor);

@@ -21,6 +21,11 @@ const sign = (n: number) => (n > 0 ? "+" : n < 0 ? MINUS : "");
 const share = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
 const FOOT = "_Menu ke liye *Hi* likhiye_";
 
+/** The same report without its closing line, for the menu tree (it adds its own back/menu footer). */
+export const withoutFoot = (text: string): string => text.replace(`
+
+${FOOT}`, "").replace(FOOT, "").trimEnd();
+
 /* ---------------- sales ---------------- */
 
 export function salesReportText(snap: Snapshot, period: PeriodName = "today", ctx?: RecContext): string {
@@ -51,7 +56,7 @@ export function salesReportText(snap: Snapshot, period: PeriodName = "today", ct
   // "sales are 100% below normal" is just noise before the first sale of the day, and the line below already says so
   const noSalesYet = s.bills === 0;
   for (const a of r.anomalies.filter((x) => !(noSalesYet && x.kind === "sales_dip")).slice(0, 2)) L.push(`⚠️ ${a.text}`);
-  if (noSalesYet) L.push("", period === "today" ? "Aaj abhi koi sale nahi hui. Is hafte ka dekhne ke liye *6 week* bhejiye." : "Is period mein koi sale nahi hui.");
+  if (noSalesYet) L.push("", period === "today" ? "Aaj abhi koi sale nahi hui. Is hafte ka dekhne ke liye *Hi* → *4* → *2* bhejiye." : "Is period mein koi sale nahi hui.");
   L.push("", FOOT);
   return L.join("\n");
 }

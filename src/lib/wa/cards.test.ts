@@ -4,7 +4,6 @@ import { buildContext } from "../analytics/recommendations";
 import { khataOverview } from "../analytics/khata-risk";
 import { buildCardData, dailyCardData, stockCardData, udhaarCardData } from "./cards-data";
 import { imagesFor } from "./media";
-import { resolveIntent } from "./router";
 import { rupees } from "../format";
 import { istDayKey, istDayStart } from "../time";
 
@@ -77,18 +76,10 @@ describe("stock card", () => {
 describe("photos with replies", () => {
   it("welcome banner on the menu, cards on report, udhaar and stock, none elsewhere", () => {
     expect(imagesFor("menu")[0].src).toBe("/wa/welcome.png");
-    expect(imagesFor("report", 1)[0].src).toBe("/api/wa/card/daily?v=1");
-    expect(imagesFor("khata", 1)[0].src).toBe("/api/wa/card/udhaar?v=1");
-    expect(imagesFor("stock", 1)[0].src).toBe("/api/wa/card/stock?v=1");
-    for (const i of ["sales", "customers", "vendors", "recs", "suppliers", "pdf", "agent"] as const) expect(imagesFor(i)).toEqual([]);
-    for (const i of ["menu", "report", "khata", "stock"] as const) for (const m of imagesFor(i)) { expect(m.alt.length).toBeGreaterThan(5); expect((m.caption ?? "").length).toBeLessThanOrEqual(1024); }
-  });
-  it("typed questions get the same photo as the menu digit", () => {
-    const keep = process.env.ANTHROPIC_API_KEY;
-    delete process.env.ANTHROPIC_API_KEY;
-    expect(resolveIntent("aaj kitni sale hui")).toBe("report");
-    expect(resolveIntent("kya khatam hone wala hai")).toBe("stock");
-    expect(resolveIntent("1")).toBe("report");
-    if (keep) process.env.ANTHROPIC_API_KEY = keep;
+    expect(imagesFor("4.1", 1)[0].src).toBe("/api/wa/card/daily?v=1");
+    expect(imagesFor("3.1", 1)[0].src).toBe("/api/wa/card/udhaar?v=1");
+    expect(imagesFor("1.1", 1)[0].src).toBe("/api/wa/card/stock?v=1");
+    for (const k of ["2.6", "3.7", "4.8", "5.7", "module:2", null]) expect(imagesFor(k)).toEqual([]);
+    for (const k of ["menu", "4.1", "3.1", "1.1"]) for (const m of imagesFor(k)) { expect(m.alt.length).toBeGreaterThan(5); expect((m.caption ?? "").length).toBeLessThanOrEqual(1024); }
   });
 });

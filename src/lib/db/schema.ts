@@ -38,6 +38,8 @@ export const merchants = pgTable("merchants", {
   city: text("city"),
   /** merchant-tunable thresholds, validated by src/lib/settings.ts */
   settings: jsonb("settings").notNull().default({}),
+  /** bumped once per request that wrote anything; lets every server instance know its cached snapshot is stale (db/snapshot-cache.ts) */
+  dataVersion: integer("data_version").notNull().default(0),
   createdAt: createdAt(),
 });
 
@@ -294,7 +296,7 @@ export const waMessages = pgTable(
     /** Meta's message id (wamid). Null only while an outbound message is still being sent. */
     wamid: text("wamid").unique(),
     direction: text("direction", { enum: ["out", "in"] }).notNull(),
-    kind: text("kind", { enum: ["report", "template", "reply", "menu", "inbound"] }).notNull(),
+    kind: text("kind", { enum: ["report", "template", "reply", "menu", "alert", "pdf", "inbound"] }).notNull(),
     /** first line only, never the whole report */
     preview: text("preview").notNull().default(""),
     status: text("status", { enum: ["sending", "sent", "delivered", "read", "failed", "received"] }).notNull(),

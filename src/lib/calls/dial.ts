@@ -24,7 +24,7 @@ export function webhookBase(env: Record<string, string | undefined> = process.en
 }
 
 /**
- * Demo guard: CALLS_ALLOWED_NUMBERS="919179772540,..." means Call Saathi dials only those numbers, whoever presses the button.
+ * Demo guard: CALLS_ALLOWED_NUMBERS="919876500001,919876500002" means Call Saathi dials only those numbers, whoever presses the button.
  * Unset = no restriction (production with real, consenting customers).
  */
 export function numberAllowed(phone: string, env: Record<string, string | undefined> = process.env): boolean {
