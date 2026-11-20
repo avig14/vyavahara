@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoMark } from "@/components/brand/logo-mark";
 import {
   Badge,
   Button,
@@ -210,14 +211,24 @@ export function SoundboxView() {
     <div className="sb">
       <header className="sb-bar">
         <span className="sb-mark">
+          <LogoMark size={36} />
           <span className="sb-mark-latin">
             {l("Vyavahāra", "व्यवहार", "Vyavahāra")}
           </span>
         </span>
         <LangToggle />
-        <Link href="/dashboard" className="sb-link">
-          {l("Open dashboard", "डैशबोर्ड खोलें", "Dashboard kholo")}
-        </Link>
+        <span className="sb-links">
+          <Link href="/dashboard/soundbox" className="sb-talk">
+            {l(
+              "Talk to Soundbox",
+              "साउंडबॉक्स से बात करें",
+              "Soundbox se baat karein",
+            )}
+          </Link>
+          <Link href="/dashboard" className="sb-link">
+            {l("Open dashboard", "डैशबोर्ड खोलें", "Dashboard kholo")}
+          </Link>
+        </span>
       </header>
       <main className="sb-main">
         <h1 className="visually-hidden">

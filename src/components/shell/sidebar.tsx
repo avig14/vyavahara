@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { useQueryParams } from "@/lib/ui/url-state";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { LangToggle } from "@/lib/ui/lang";
 import { NAV_ITEMS, isCurrent } from "./nav";
 
@@ -12,15 +14,7 @@ const KEEP = ["period", "from", "to"] as const;
 export function Wordmark({ href = "/dashboard" }: { href?: string }) {
   return (
     <Link href={href} className="wordmark" aria-label="Vyavahāra, home">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="wordmark-logo"
-        src="/brand/vyavahara-logo.svg"
-        alt=""
-        aria-hidden="true"
-        width={40}
-        height={40}
-      />
+      <LogoMark size={36} className="wordmark-logo" />
       <span className="wordmark-latin">Vyavahāra</span>
       <span className="wordmark-deva deva" lang="hi">
         व्यवहार
@@ -102,10 +96,10 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
           onClick={onNavigate}
         >
           <span className="nav-label">
-            <span className="nav-name">Soundbox</span>
+            <span className="nav-name">Payment screen</span>
           </span>
           <span className="nav-hi deva" lang="hi">
-            साउंडबॉक्स
+            रोज़मेल
           </span>
         </Link>
       </div>

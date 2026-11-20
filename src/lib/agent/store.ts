@@ -1,6 +1,7 @@
 /** Write port for the agent. Real impl talks to Neon; tests use an in-memory fake. */
 import type { Db } from "../db/client";
 import * as q from "../db/queries";
+import { callCustomerNow } from "../calls/dial";
 
 export type Actor = "ai" | "owner" | "system";
 export type ExpenseCategory = "rent" | "electricity" | "salary" | "transport" | "other";
@@ -16,6 +17,8 @@ export interface AgentStore {
   payVendorBill(purchaseId: string, amountPaise?: number): Promise<void>;
   receiveBill(b: q.BillReceipt): Promise<void>;
   createPending(kind: q.PendingKind, payload: unknown): Promise<string>;
+  /** Call Saathi: phone a customer about their udhaar. Optional so test fakes need not implement it. */
+  callCustomer?(customerId: string): Promise<{ ok: true; name: string; amountPaise: number } | { ok: false; message: string }>;
 }
 
 export function dbStore(db: Db, merchantId: string, actor: Actor = "ai"): AgentStore {
@@ -30,5 +33,29 @@ export function dbStore(db: Db, merchantId: string, actor: Actor = "ai"): AgentS
     payVendorBill: async (purchaseId, amountPaise) => void (await q.payVendorBill(db, { merchantId, purchaseId, amountPaise, actor })),
     receiveBill: async (b) => void (await q.receiveBill(db, merchantId, b, "photo", "owner")),
     createPending: async (kind, payload) => (await q.createPendingAction(db, merchantId, kind, payload)).id,
+    callCustomer: (customerId) => callCustomerNow(db, merchantId, customerId),
+  };
+}
+
+/**
+ * Public demo (Soundbox on the landing page with SOUNDBOX_LANDING_READONLY=true): every direct write fails with a
+ * message the agent can say. Confirmations can still be proposed; the voice route cancels them instead of applying.
+ */
+export function readOnlyStore(inner: AgentStore): AgentStore {
+  const no = async () => {
+    throw new Error("Demo mode: yahan se badlav save nahi hota. Dashboard ya WhatsApp se kijiye.");
+  };
+  return {
+    addKhataEntry: no,
+    addExpense: no,
+    addCashSale: no,
+    adjustStock: no,
+    setCreditBlocked: no,
+    setCreditLimit: no,
+    createPurchaseOrder: no,
+    payVendorBill: no,
+    receiveBill: no,
+    createPending: (kind, payload) => inner.createPending(kind, payload),
+    callCustomer: no,
   };
 }

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
+import Script from "next/script";
+import { STRIP_EXTENSION_ATTRS } from "@/components/dev/strip-extension-attrs";
 import { LangProvider } from "@/lib/ui/lang";
 import { LANG_COOKIE, parseLang } from "@/lib/ui/i18n";
 import "./globals.css";
@@ -63,6 +65,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${interPaytm.variable} ${inter.variable} ${deva.variable}`}
     >
       <body>
+        {process.env.NODE_ENV !== "production" ? <Script id="strip-extension-attrs" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRS }} /> : null}
         <LangProvider initial={lang}>{children}</LangProvider>
       </body>
     </html>

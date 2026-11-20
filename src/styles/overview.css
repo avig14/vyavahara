@@ -111,6 +111,7 @@
 /* ---- WhatsApp card on Reports: send, number, delivery status ---- */
 .wa-card { display: grid; gap: var(--space-sm); max-width: 60rem; padding: var(--space-md); border: 1px solid var(--color-rule-strong); border-radius: var(--radius-control); background: var(--color-paper-3); margin-bottom: var(--space-lg); }
 .wa-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); }
+.wa-send { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
 .wa-head h2 { font-size: var(--text-lg); font-weight: 700; }
 .wa-row { display: flex; flex-wrap: wrap; align-items: start; gap: var(--space-xs); }
 .wa-row .field { flex: 1 1 14rem; max-width: 22rem; }
@@ -122,3 +123,5 @@
 .wa-kind { font-weight: 600; }
 .wa-why { flex-basis: 100%; color: var(--color-error); }
 @media (max-width: 40rem) { .wa-row .btn { margin-top: 0; } }
+.wa-join { display: grid; gap: var(--space-sm); justify-items: start; padding: var(--space-sm) 0; border-top: 1px solid var(--color-rule); }
+.wa-steps { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--space-2xs); font-size: var(--text-sm); }

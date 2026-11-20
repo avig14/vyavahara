@@ -10,6 +10,8 @@
 .lp-nav-in { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: calc(var(--topbar-h) + var(--space-sm)); }
 .lp-mark { display: inline-flex; align-items: baseline; gap: var(--space-xs); min-height: var(--control-h); align-items: center; color: var(--color-navy); font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-display); text-decoration: none; }
 .lp-mark .deva { font-size: var(--text-md); font-weight: 500; color: var(--color-muted); }
+.lp-mark { gap: var(--space-sm); }
+.lp-foot-in .lp-mark .logo-mark { width: 28px; height: 28px; }
 .lp-link { display: inline-flex; align-items: center; min-height: var(--control-h); padding-inline: var(--space-2xs); color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 600; text-decoration-color: var(--color-rule-strong); }
 .lp-mark:focus-visible, .lp-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .lp-mark:active, .lp-link:active { color: var(--color-ink); }

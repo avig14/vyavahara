@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320">
+<title>Flow: a soundbox payment becomes a rozmel line, then Khata, Stock and Saathi actions</title>
+<rect x="0" y="0" width="1200" height="320" fill="#FFFFFF" id="flow-bg"/>
+<g id="flow-arrows">
+<path d="M250 160H410" fill="none" stroke="#012970" stroke-width="3" stroke-linecap="round"/>
+<path d="M620 160H700Q740 160 740 120V70H810" fill="none" stroke="#012970" stroke-width="3" stroke-linecap="round"/>
+<path d="M700 160H810" fill="none" stroke="#012970" stroke-width="3" stroke-linecap="round"/>
+<path d="M700 160Q740 160 740 200V250H810" fill="none" stroke="#012970" stroke-width="3" stroke-linecap="round"/>
+<polygon points="420,160 406,152 406,168" fill="#012970"/>
+<polygon points="824,70 810,62 810,78" fill="#012970"/>
+<polygon points="824,160 810,152 810,168" fill="#012970"/>
+<polygon points="824,250 810,242 810,258" fill="#012970"/>
+</g>
+<g id="flow-soundbox">
+<rect x="50" y="90" width="200" height="140" rx="16" fill="#012970"/>
+<rect x="80" y="116" width="140" height="44" rx="8" fill="#02BAF2"/>
+<rect x="96" y="132" width="90" height="12" rx="6" fill="#FFFFFF"/>
+<circle cx="100" cy="190" r="5" fill="#ABC0D7"/>
+<circle cx="130" cy="190" r="5" fill="#ABC0D7"/>
+<circle cx="160" cy="190" r="5" fill="#ABC0D7"/>
+<circle cx="190" cy="190" r="5" fill="#ABC0D7"/>
+</g>
+<g id="flow-rozmel">
+<rect x="420" y="90" width="200" height="140" rx="16" fill="#E0F5FD" stroke="#012970" stroke-width="3"/>
+<rect x="446" y="116" width="148" height="14" rx="7" fill="#02BAF2"/>
+<rect x="446" y="144" width="110" height="10" rx="5" fill="#012970"/>
+<rect x="446" y="166" width="130" height="10" rx="5" fill="#7A8798"/>
+<rect x="446" y="188" width="80" height="10" rx="5" fill="#B4BFCA"/>
+</g>
+<g id="flow-modules">
+<rect x="830" y="30" width="300" height="80" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3"/>
+<rect x="830" y="120" width="300" height="80" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3"/>
+<rect x="830" y="210" width="300" height="80" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3"/>
+<circle cx="872" cy="70" r="20" fill="#FFF2D8"/>
+<path d="M872 60V70L879 75" fill="none" stroke="#935B00" stroke-width="4" stroke-linecap="round"/>
+<rect x="908" y="58" width="150" height="10" rx="5" fill="#012970"/>
+<rect x="908" y="76" width="100" height="8" rx="4" fill="#7A8798"/>
+<circle cx="872" cy="160" r="20" fill="#E0F5FD"/>
+<rect x="862" y="162" width="8" height="10" fill="#012970"/>
+<rect x="872" y="150" width="8" height="22" fill="#02BAF2"/>
+<rect x="908" y="148" width="150" height="10" rx="5" fill="#012970"/>
+<rect x="908" y="166" width="110" height="8" rx="4" fill="#7A8798"/>
+<circle cx="872" cy="250" r="20" fill="#E0F5FD"/>
+<path d="M862 244Q862 241 865 241H879Q882 241 882 244V254Q882 257 879 257H870L865 262V257Q862 257 862 254Z" fill="#012970"/>
+<rect x="908" y="238" width="150" height="10" rx="5" fill="#012970"/>
+<rect x="908" y="256" width="90" height="8" rx="4" fill="#7A8798"/>
+</g>
+</svg>

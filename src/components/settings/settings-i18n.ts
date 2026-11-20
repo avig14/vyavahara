@@ -333,6 +333,54 @@ const F: Record<string, [string, string, string, string]> = {
     "एक ही तरह के दो अलर्ट के बीच कम से कम इतने दिन।",
     "Ek hi tarah ke do alerts ke beech kam se kam itne din.",
   ],
+  "calls.enabled": [
+    "रिमाइंडर कॉल",
+    "Reminder calls",
+    "कॉल साथी उन ग्राहकों को फ़ोन करता है जिनका उधार लेट है। इसे कॉल साथी पेज पर संभालें।",
+    "Call Saathi un customers ko phone karta hai jinka udhaar late hai. Ise Call Saathi page par sambhalo.",
+  ],
+  "calls.minOverdueDays": [
+    "इतने दिन लेट होने पर कॉल",
+    "Itne din late hone par call",
+    "सबसे पुराना बाक़ी उधार इतना पुराना हो जाए तब कॉल शुरू हो।",
+    "Sabse purana baaki udhaar itna purana ho jaaye tab call shuru ho.",
+  ],
+  "calls.minOutstandingPaise": [
+    "कॉल के लिए सबसे कम बाक़ी",
+    "Call ke liye sabse kam baaki",
+    "इससे कम बाक़ी वाले ग्राहकों को कॉल नहीं जाती।",
+    "Isse kam baaki wale customers ko call nahi jaati.",
+  ],
+  "calls.maxAttempts": [
+    "हर ग्राहक को ज़्यादा से ज़्यादा कॉल",
+    "Har customer ko zyada se zyada call",
+    "इतनी कॉल के बाद रुक जाएँ।",
+    "Itni call ke baad ruk jaao.",
+  ],
+  "calls.retryGapDays": [
+    "इतने दिन बाद फिर कॉल",
+    "Itne din baad phir call",
+    "1 = रोज़, 2 = एक दिन छोड़कर, 7 = हफ़्ते में एक बार।",
+    "1 = roz, 2 = ek din chhodkar, 7 = hafte mein ek baar.",
+  ],
+  "calls.fromHour": [
+    "कॉल इस समय से",
+    "Call is samay se",
+    "इस घंटे से पहले कोई कॉल नहीं, भारतीय समय।",
+    "Is ghante se pehle koi call nahi, Indian time.",
+  ],
+  "calls.untilHour": [
+    "कॉल इस समय तक",
+    "Call is samay tak",
+    "इस घंटे से आगे कोई कॉल नहीं, भारतीय समय।",
+    "Is ghante se aage koi call nahi, Indian time.",
+  ],
+  "calls.maxCallsPerRun": [
+    "हर बार में ज़्यादा से ज़्यादा कॉल",
+    "Har baar mein zyada se zyada call",
+    "कॉल साथी के हर बार चलने पर यह सीमा रहती है।",
+    "Call Saathi ke har baar chalne par yeh limit rehti hai.",
+  ],
   festivals: [
     "आपके त्योहार",
     "Aapke tyohaar",
@@ -360,6 +408,7 @@ const CLUSTER: Record<string, [string, string]> = {
 
 const UNIT: Record<string, [string, string]> = {
   "z-score": ["z-स्कोर", "z-score"],
+  calls: ["कॉल", "call"],
   days: ["दिन", "din"],
   weight: ["वज़न", "weight"],
   points: ["अंक", "points"],
@@ -425,6 +474,12 @@ const G: Record<string, [string, string, string, string]> = {
     "Alerts",
     "कौन से अपने-आप संदेश जाएँ, और कब।",
     "Kaun se apne-aap messages jaayein, aur kab.",
+  ],
+  calls: [
+    "कॉल साथी",
+    "Call Saathi",
+    "बाक़ी रहने वाले उधार के लिए अपने-आप रिमाइंडर कॉल।",
+    "Baaki rehne wale udhaar ke liye apne-aap reminder calls.",
   ],
   festivals: [
     "त्योहार",
@@ -653,9 +708,13 @@ const RULES: R[] = [
     "वज़न का जोड़ $1 है। सिर्फ़ उनका अनुपात मायने रखता है।",
     "Weights ka jod $1 hai. Sirf unka anupaat maayne rakhta hai.",
   ],
-  
+
   [/^12:00 am \(midnight\)$/, "रात 12:00 (आधी रात)", "Raat 12:00 (aadhi raat)"],
-  [/^None added\. The built-in festival calendar still applies\.$/, "कुछ जोड़ा नहीं। बना-बनाया त्योहार कैलेंडर फिर भी लागू रहता है।", "Kuch joda nahi. Bana-banaya tyohaar calendar phir bhi lagu rehta hai."],
+  [
+    /^None added\. The built-in festival calendar still applies\.$/,
+    "कुछ जोड़ा नहीं। बना-बनाया त्योहार कैलेंडर फिर भी लागू रहता है।",
+    "Kuch joda nahi. Bana-banaya tyohaar calendar phir bhi lagu rehta hai.",
+  ],
   [/^No costs listed$/, "कोई ख़र्चा नहीं", "Koi kharcha nahi"],
   [
     /^Learned from expense history$/,

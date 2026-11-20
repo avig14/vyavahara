@@ -38,6 +38,8 @@ export const merchants = pgTable("merchants", {
   city: text("city"),
   /** merchant-tunable thresholds, validated by src/lib/settings.ts */
   settings: jsonb("settings").notNull().default({}),
+  /** bumped once per request that wrote anything; lets every server instance know its cached snapshot is stale (db/snapshot-cache.ts) */
+  dataVersion: integer("data_version").notNull().default(0),
   createdAt: createdAt(),
 });
 
@@ -135,6 +137,10 @@ export const customers = pgTable("customers", {
   vpaHash: text("vpa_hash"),
   creditLimitPaise: integer("credit_limit_paise").notNull().default(0),
   creditBlocked: boolean("credit_blocked").notNull().default(false),
+  /** E.164 digits without "+", e.g. 919876543210. Needed for Call Saathi. */
+  phone: text("phone"),
+  /** The customer agreed to receive reminder calls. Call Saathi never dials without it. */
+  callConsent: boolean("call_consent").notNull().default(false),
   createdAt: createdAt(),
 });
 
@@ -290,7 +296,7 @@ export const waMessages = pgTable(
     /** Meta's message id (wamid). Null only while an outbound message is still being sent. */
     wamid: text("wamid").unique(),
     direction: text("direction", { enum: ["out", "in"] }).notNull(),
-    kind: text("kind", { enum: ["report", "template", "reply", "menu", "inbound"] }).notNull(),
+    kind: text("kind", { enum: ["report", "template", "reply", "menu", "alert", "pdf", "inbound"] }).notNull(),
     /** first line only, never the whole report */
     preview: text("preview").notNull().default(""),
     status: text("status", { enum: ["sending", "sent", "delivered", "read", "failed", "received"] }).notNull(),
@@ -319,7 +325,7 @@ export const conversations = pgTable(
   {
     id: id(),
     merchantId: text("merchant_id").notNull(),
-    channel: text("channel", { enum: ["wa", "web"] }).notNull(),
+    channel: text("channel", { enum: ["wa", "web", "voice"] }).notNull(),
     role: text("role", { enum: ["user", "assistant"] }).notNull(),
     content: text("content").notNull(),
     createdAt: createdAt(),
@@ -335,3 +341,26 @@ export const auditLog = pgTable("audit_log", {
   payload: jsonb("payload"),
   createdAt: createdAt(),
 });
+
+/** One row per reminder call Call Saathi places (or skips). */
+export const callAttempts = pgTable(
+  "call_attempts",
+  {
+    id: id(),
+    merchantId: text("merchant_id").notNull(),
+    customerId: text("customer_id").notNull(),
+    /** outstanding at dial time, paise (the script reads this, not live data) */
+    amountPaise: integer("amount_paise").notNull(),
+    overdueDays: integer("overdue_days").notNull(),
+    status: text("status", { enum: ["queued", "dialing", "completed", "failed"] }).notNull().default("queued"),
+    outcome: text("outcome", { enum: ["will_pay", "call_back", "no_response", "no_answer", "error"] }),
+    /** Vobiz request_uuid / call_uuid */
+    callUuid: text("call_uuid"),
+    detail: text("detail"),
+    /** seconds the customer was on the line (Vobiz hangup `Duration`) */
+    durationSec: integer("duration_sec"),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at"),
+  },
+  (t) => [index("call_attempts_merchant_customer_idx").on(t.merchantId, t.customerId, t.createdAt)],
+);

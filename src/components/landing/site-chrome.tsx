@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { LangToggle, useT } from "@/lib/ui/lang";
 
-/** Text wordmark: the name and the Devanagari beside it. No logo. */
-export function Wordmark() {
+/** The logo, then the name and the Devanagari beside it. */
+export function Wordmark({ size = 36 }: { size?: number }) {
   return (
     <Link href="/" className="lp-mark">
-      Vyavahāra <span className="deva">व्यवहार</span>
+      <LogoMark size={size} />
+      <span>
+        Vyavahāra <span className="deva">व्यवहार</span>
+      </span>
     </Link>
   );
 }

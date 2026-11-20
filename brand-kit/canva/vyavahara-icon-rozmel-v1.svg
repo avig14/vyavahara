@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <title>Rozmel daily ledger</title>
+  <rect x="0" y="0" width="96" height="96" rx="16" fill="#E0F5FD" id="icn-bg" />
+  <g id="icn-ledger">
+    <rect x="24" y="16" width="48" height="64" rx="6" fill="#FFFFFF" />
+    <path d="M66 14L29.3 14L27.8 14.3L26.8 14.6L26.1 15L25 15.8L24.4 16.3L23.8 17L23.3 17.6L22.6 18.8L22.3 19.8L22.1 21.1L22 22L22 74.1L22.1 75.5L22.3 76.2L22.6 77.2L23 77.9L23.4 78.5L24.3 79.6L25 80.2L25.6 80.7L26.8 81.4L27.6 81.6L28.5 81.9L29.9 82L66.7 82L67.5 81.9L68.4 81.6L69.2 81.4L70.4 80.7L71.6 79.7L72.2 79L72.7 78.4L73.4 77.2L73.7 76.2L73.9 74.9L74 74L74 22L73.9 21.1L73.6 19.6L73 18.1L72.2 17L71.1 15.9L69.9 15L69 14.6L67.5 14.1ZM66.4 18L67.5 18.3L68.2 18.7L68.8 19.2L69.3 19.8L69.7 20.5L70 21.6L70 74L70 74.4L69.8 75.2L69.3 76.2L68.8 76.8L67.9 77.5L66.8 77.9L66 78L30 78L29.6 78L28.8 77.8L27.8 77.3L26.9 76.5L26.5 75.9L26.1 74.8L26 74L26 22L26 21.6L26.2 20.8L26.7 19.8L27.5 18.9L28.1 18.5L29.2 18.1L30 18Z" fill="#012970" fill-rule="evenodd" />
+    <rect x="24" y="16" width="48" height="12" rx="6" fill="#012970" />
+    <rect x="32" y="38" width="12" height="5" rx="2.5" fill="#012970" />
+    <rect x="50" y="38" width="14" height="5" rx="2.5" fill="#02BAF2" />
+    <rect x="32" y="50" width="12" height="5" rx="2.5" fill="#012970" />
+    <rect x="50" y="50" width="14" height="5" rx="2.5" fill="#02BAF2" />
+    <rect x="32" y="62" width="32" height="2" fill="#012970" />
+    <rect x="48" y="68" width="16" height="6" rx="3" fill="#012970" />
+  </g>
+</svg>

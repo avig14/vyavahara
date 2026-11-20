@@ -8,12 +8,14 @@ import type { KhataOverview } from "../analytics/khata-risk";
 import type { Db } from "../db/client";
 import { getOpenPending, resolvePending, type PendingKind } from "../db/queries";
 import { dbStore, type AgentStore } from "./store";
+import { callDoneText } from "../calls/dial";
 
 export type PendingPayload =
   | { kind: "block_credit"; customerId: string; name: string; blocked: boolean }
   | { kind: "set_limit"; customerId: string; name: string; limitPaise: number }
   | { kind: "adjust_stock"; productId: string; name: string; delta: number; unit: string }
   | { kind: "udhaar"; customerId: string; name: string; amountPaise: number; note?: string }
+  | { kind: "call_customer"; customerId: string; name: string; amountPaise: number; overdueDays: number }
   | { kind: "pay_vendor"; purchaseId: string; vendorName: string; amountPaise: number }
   | { kind: "create_po"; vendorId: string; vendorName: string; items: { productId: string; name: string; qty: number; unit: string }[] }
   | {
@@ -41,6 +43,8 @@ export function confirmationMessage(p: PendingPayload, reasons: string[] = []): 
       return `${p.name} ka stock ${p.delta > 0 ? "+" : ""}${num(p.delta, 1)} ${p.unit} badlun?${why}${CONFIRM_SUFFIX}`;
     case "udhaar":
       return `⚠️ ${p.name} ke naam ${rupees(p.amountPaise)} udhaar likhna hai.${why}\nLikh dun?${CONFIRM_SUFFIX}`;
+    case "call_customer":
+      return `📞 ${p.name} ko ${rupees(p.amountPaise)} ({days} din se) ke liye reminder call lagaun?${CONFIRM_SUFFIX}`.replace("{days}", String(p.overdueDays));
     case "pay_vendor":
       return `${p.vendorName} ko ${rupees(p.amountPaise)} ka payment mark karun?${CONFIRM_SUFFIX}`;
     case "create_po":
@@ -70,6 +74,11 @@ export async function executePending(store: AgentStore, p: PendingPayload): Prom
     case "udhaar":
       await store.addKhataEntry({ customerId: p.customerId, type: "credit", amountPaise: p.amountPaise, note: p.note });
       return `✅ ${p.name} ke naam ${rupees(p.amountPaise)} udhaar likh diya.`;
+    case "call_customer": {
+      if (!store.callCustomer) return "Call abhi yahan se nahi ho sakti.";
+      const r = await store.callCustomer(p.customerId);
+      return r.ok ? callDoneText(r.name, r.amountPaise) : r.message;
+    }
     case "pay_vendor":
       await store.payVendorBill(p.purchaseId, p.amountPaise);
       return `✅ ${p.vendorName} ko ${rupees(p.amountPaise)} ka payment mark kiya.`;

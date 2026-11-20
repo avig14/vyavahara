@@ -13,6 +13,7 @@ import {
 import { ApiError, postJson, toApiError, useApi } from "@/lib/ui/api";
 import { useQueryState } from "@/lib/ui/url-state";
 import { useL } from "@/lib/ui/lang";
+import { WaJoin } from "@/components/reports/wa-join";
 
 const STEPS = ["1", "2", "3", "4"] as const;
 type Step = (typeof STEPS)[number];
@@ -67,6 +68,7 @@ export function OnboardingFlow() {
   const shop = useApi<{ merchant: { name: string; ownerName: string } }>(
     "/api/dashboard/overview",
   );
+  const wa = useApi<{ connected: boolean }>("/api/whatsapp/status");
 
   // move focus to the new step's heading, but not on first paint
   const title = useRef<HTMLHeadingElement>(null);
@@ -127,7 +129,10 @@ export function OnboardingFlow() {
         />
       </picture>
       <div className="ob-grid">
-        <ol className="ob-steps" aria-label={l("Setup steps", "सेटअप के चरण", "Setup ke steps")}>
+        <ol
+          className="ob-steps"
+          aria-label={l("Setup steps", "सेटअप के चरण", "Setup ke steps")}
+        >
           {STEPS.map((s) => {
             const st = stateOf(s);
             return (
@@ -320,33 +325,22 @@ export function OnboardingFlow() {
               <h2 id="ob-title" className="ob-title" ref={title} tabIndex={-1}>
                 WhatsApp
               </h2>
-              <div className="ob-status">
-                <Badge tone="warn">
-                  {l("Not connected yet", "अभी जुड़ा नहीं", "Abhi connect nahi")}
-                </Badge>
-              </div>
               <div className="ob-text">
                 <p>
                   {l(
-                    "Reports reach WhatsApp through Meta's official Cloud API. There is no QR code to scan.",
-                    "रिपोर्ट Meta के आधिकारिक Cloud API से WhatsApp पर पहुँचती है। कोई QR कोड स्कैन नहीं करना पड़ता।",
-                    "Reports Meta ke official Cloud API se WhatsApp par pahunchti hain. Koi QR code scan nahi karna padta.",
-                  )}
-                </p>
-                <p>
-                  {l(
-                    "Add your number and send a report from the Reports page. Setup steps are in docs/WHATSAPP-SETUP.md.",
-                    "रिपोर्ट पेज से अपना नंबर जोड़ें और रिपोर्ट भेजें। सेटअप के चरण docs/WHATSAPP-SETUP.md में हैं।",
-                    "Reports page se apna number jodo aur report bhejo. Setup ke steps docs/WHATSAPP-SETUP.md mein hain.",
+                    "Scan the QR with your phone and send the pre-filled message once. Then the bot can reply to you, and you can ask for reports, stock and khata from WhatsApp.",
+                    "अपने फ़ोन से QR स्कैन करें और पहले से भरा संदेश एक बार भेजें। फिर बॉट आपको जवाब दे सकता है, और आप WhatsApp से रिपोर्ट, स्टॉक और खाता पूछ सकते हैं।",
+                    "Apne phone se QR scan karo aur pehle se bhara message ek baar bhejo. Phir bot aapko jawab de sakta hai, aur aap WhatsApp se report, stock aur khata pooch sakte ho.",
                   )}
                 </p>
               </div>
+              <WaJoin />
               <div className="ob-actions">
                 <Button variant="primary" onClick={() => setStep("4")}>
                   {l("Finish setup", "सेटअप पूरा करें", "Setup poora karo")}
                 </Button>
                 <Button variant="quiet" onClick={() => setStep("2")}>
-                  Back
+                  {l("Back", "पीछे", "Peeche")}
                 </Button>
               </div>
             </>
@@ -387,7 +381,19 @@ export function OnboardingFlow() {
                   },
                   {
                     label: "WhatsApp",
-                    value: <Badge tone="warn">Not connected yet</Badge>,
+                    value: wa.data?.connected ? (
+                      <Badge tone="success">
+                        {l("Connected", "जुड़ गया", "Connect ho gaya")}
+                      </Badge>
+                    ) : (
+                      <Badge tone="warn">
+                        {l(
+                          "Not connected yet",
+                          "अभी जुड़ा नहीं",
+                          "Abhi connect nahi",
+                        )}
+                      </Badge>
+                    ),
                   },
                 ]}
               />
@@ -412,7 +418,7 @@ export function OnboardingFlow() {
                   {l("Open the dashboard", "डैशबोर्ड खोलें", "Dashboard kholo")}
                 </Link>
                 <Button variant="quiet" onClick={() => setStep("3")}>
-                  Back
+                  {l("Back", "पीछे", "Peeche")}
                 </Button>
               </div>
             </>

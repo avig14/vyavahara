@@ -15,6 +15,8 @@
 @import "../styles/khata.css" layer(components);
 @import "../styles/inventory.css" layer(components);
 @import "../styles/settings.css" layer(components);
+@import "../styles/soundbox.css" layer(components);
+@import "../styles/whatsapp.css" layer(components);
 
 /* app-wide */
 body { font-feature-settings: "tnum" 0; min-height: 100dvh; }

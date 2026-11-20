@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320">
+  <title>Payment to rozmel to khata, stock, saathi</title>
+  <rect width="1200" height="320" fill="#FFFFFF"/>
+  <g stroke="#012970" stroke-width="3" fill="none" stroke-linecap="round"><path d="M250 160 H410"/><path d="M620 160 H700 Q740 160 740 120 V70 H810"/><path d="M700 160 H810"/><path d="M700 160 Q740 160 740 200 V250 H810"/></g>
+  <g fill="#012970"><polygon points="420,160 406,152 406,168"/><polygon points="824,70 810,62 810,78"/><polygon points="824,160 810,152 810,168"/><polygon points="824,250 810,242 810,258"/></g>
+  <rect x="50" y="90" width="200" height="140" rx="16" fill="#012970"/>
+  <rect x="80" y="116" width="140" height="44" rx="8" fill="#02BAF2"/><rect x="96" y="132" width="90" height="12" rx="6" fill="#FFFFFF"/>
+  <g fill="#ABC0D7"><circle cx="100" cy="190" r="5"/><circle cx="130" cy="190" r="5"/><circle cx="160" cy="190" r="5"/><circle cx="190" cy="190" r="5"/></g>
+  <rect x="420" y="90" width="200" height="140" rx="16" fill="#E0F5FD" stroke="#012970" stroke-width="3"/>
+  <rect x="446" y="116" width="148" height="14" rx="7" fill="#02BAF2"/><rect x="446" y="144" width="110" height="10" rx="5" fill="#012970"/><rect x="446" y="166" width="130" height="10" rx="5" fill="#7A8798"/><rect x="446" y="188" width="80" height="10" rx="5" fill="#B4BFCA"/>
+  <g fill="#FFFFFF" stroke="#012970" stroke-width="3"><rect x="830" y="30" width="300" height="80" rx="14"/><rect x="830" y="120" width="300" height="80" rx="14"/><rect x="830" y="210" width="300" height="80" rx="14"/></g>
+  <circle cx="872" cy="70" r="20" fill="#FFF2D8"/><path d="M872 60 V70 L879 75" fill="none" stroke="#935B00" stroke-width="4" stroke-linecap="round"/>
+  <rect x="908" y="58" width="150" height="10" rx="5" fill="#012970"/><rect x="908" y="76" width="100" height="8" rx="4" fill="#7A8798"/>
+  <circle cx="872" cy="160" r="20" fill="#E0F5FD"/><rect x="862" y="162" width="8" height="10" fill="#012970"/><rect x="872" y="150" width="8" height="22" fill="#02BAF2"/>
+  <rect x="908" y="148" width="150" height="10" rx="5" fill="#012970"/><rect x="908" y="166" width="110" height="8" rx="4" fill="#7A8798"/>
+  <circle cx="872" cy="250" r="20" fill="#E0F5FD"/><path d="M862 244 Q862 241 865 241 H879 Q882 241 882 244 V254 Q882 257 879 257 H870 L865 262 V257 Q862 257 862 254 Z" fill="#012970"/>
+  <rect x="908" y="238" width="150" height="10" rx="5" fill="#012970"/><rect x="908" y="256" width="90" height="8" rx="4" fill="#7A8798"/>
+</svg>

@@ -1,19 +1,23 @@
 "use client";
 
-import { useL, type L } from "@/lib/ui/lang";
 import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
   Field,
   Input,
+  Select,
   useToast,
   type BadgeTone,
 } from "@/components/ui";
 import { postJson, toApiError, useApi } from "@/lib/ui/api";
 import { istStamp } from "@/lib/ui/dates";
+import { useL, type L } from "@/lib/ui/lang";
+import { WaJoin } from "./wa-join";
 
 interface WaStatusPayload {
+  provider: "twilio" | "meta" | null;
+  connected: boolean;
   configured: boolean;
   webhookReady: boolean;
   number: string | null;
@@ -56,6 +60,8 @@ const kindMeta = (l: L): Record<string, string> => ({
   ),
   reply: l("Bot reply", "बॉट का जवाब", "Bot ka jawab"),
   menu: l("Menu", "मेन्यू", "Menu"),
+  alert: l("Khata alert", "खाता अलर्ट", "Khata alert"),
+  pdf: l("PDF report", "PDF रिपोर्ट", "PDF report"),
 });
 
 /** Still on its way: keep checking. Delivered/read/failed are final. */
@@ -63,13 +69,15 @@ const inFlight = (s?: string) => s === "sending" || s === "sent";
 
 /**
  * Send the same analysis to the owner's WhatsApp and watch it arrive. The token lives on the server; this only
- * calls our own routes. "Delivered" and "read" come from Meta's webhook, so without it the status stops at "Bhej diya".
+ * calls our own routes. "Delivered" and "read" come from the provider's status callback, so without it the status stops at "Bhej diya".
  */
 export function WhatsAppCard() {
   const l = useL();
   const toast = useToast();
   const state = useApi<WaStatusPayload>("/api/whatsapp/status");
   const { data, refetch } = state;
+  const [kind, setKind] = useState("daily");
+  const [period, setPeriod] = useState("today");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -108,7 +116,10 @@ export function WhatsAppCard() {
     setSending(true);
     setNotice(null);
     try {
-      const r = await postJson<SendResult>("/api/whatsapp/send-report");
+      const r = await postJson<SendResult>("/api/whatsapp/send-report", {
+        kind,
+        period,
+      });
       if (r.kind === "template") {
         setNotice(r.notice ?? null);
         toast.push({
@@ -158,18 +169,69 @@ export function WhatsAppCard() {
         <h2 id="wa-title">
           {l("Report on WhatsApp", "WhatsApp पर रिपोर्ट", "WhatsApp par report")}
         </h2>
-        <Button
-          variant="primary"
-          onClick={sendReport}
-          loading={sending}
-          disabled={!canSend}
-        >
-          {l(
-            "Send report on WhatsApp",
-            "WhatsApp पर रिपोर्ट भेजें",
-            "WhatsApp par report bhejo",
-          )}
-        </Button>
+        <div className="wa-send">
+          <Select
+            aria-label={l("Which report", "कौन सी रिपोर्ट", "Kaun sa report")}
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+            options={[
+              {
+                value: "daily",
+                label: l(
+                  "Full report for today",
+                  "आज की पूरी रिपोर्ट",
+                  "Aaj ka poora report",
+                ),
+              },
+              {
+                value: "sales",
+                label: l("Sales report", "बिक्री रिपोर्ट", "Sales report"),
+              },
+              {
+                value: "customers",
+                label: l("Customer report", "ग्राहक रिपोर्ट", "Customer report"),
+              },
+              {
+                value: "vendors",
+                label: l("Supplier report", "सप्लायर रिपोर्ट", "Supplier report"),
+              },
+              {
+                value: "recommendations",
+                label: l(
+                  "Suggestions report",
+                  "सुझावों की रिपोर्ट",
+                  "Suggestions report",
+                ),
+              },
+            ]}
+          />
+          {kind === "sales" ? (
+            <Select
+              aria-label={l("Which period", "कौन सी अवधि", "Kis period ka")}
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              options={[
+                { value: "today", label: l("Today", "आज", "Aaj") },
+                {
+                  value: "this_week",
+                  label: l("This week", "इस हफ़्ते", "Is hafte"),
+                },
+                {
+                  value: "this_month",
+                  label: l("This month", "इस महीने", "Is mahine"),
+                },
+              ]}
+            />
+          ) : null}
+          <Button
+            variant="primary"
+            onClick={sendReport}
+            loading={sending}
+            disabled={!canSend}
+          >
+            {l("Send on WhatsApp", "WhatsApp पर भेजें", "WhatsApp par bhejo")}
+          </Button>
+        </div>
       </div>
 
       {!data && !state.error ? (
@@ -192,11 +254,11 @@ export function WhatsAppCard() {
         <p className="wa-note wa-bad" role="status">
           {l(
             "WhatsApp is not set up yet. Put",
-            "WhatsApp अभी सेट नहीं है। ये दोनों",
+            "WhatsApp अभी सेट नहीं है। ये तीनों",
             "WhatsApp abhi set up nahi hai.",
           )}{" "}
-          <code>WHATSAPP_ACCESS_TOKEN</code> {l("and", "और", "aur")}{" "}
-          <code>WHATSAPP_PHONE_NUMBER_ID</code>{" "}
+          <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code>{" "}
+          {l("and", "और", "aur")} <code>TWILIO_WHATSAPP_FROM</code>{" "}
           {l("in .env. Steps:", ".env में डालें। चरण:", ".env mein daalo. Steps:")}{" "}
           <code>docs/WHATSAPP-SETUP.md</code>.
         </p>
@@ -219,9 +281,9 @@ export function WhatsAppCard() {
                       `Abhi saved: ${data.number}`,
                     )
                   : l(
-                      "A 10-digit number, verified in the Meta test list.",
-                      "10 अंकों का नंबर, Meta टेस्ट सूची में सत्यापित होना चाहिए।",
-                      "10 digit number. Meta test list mein verify kiya hua hona chahiye.",
+                      "A 10-digit number that has WhatsApp.",
+                      "10 अंकों का नंबर, जिस पर WhatsApp चलता है।",
+                      "10 digit number, jis par WhatsApp chalta hai.",
                     )
               }
               error={phoneError}
@@ -242,7 +304,9 @@ export function WhatsAppCard() {
             </Button>
           </div>
 
-          {data.number ? (
+          {configured && !data.connected ? <WaJoin /> : null}
+
+          {data.number && data.connected ? (
             <p className="wa-note">
               {data.windowOpenUntil
                 ? l(
@@ -295,9 +359,9 @@ export function WhatsAppCard() {
           {!data.webhookReady && data.messages.length ? (
             <p className="wa-note">
               {l(
-                "The webhook is not set, so the status will stop at “Sent”. Connect the webhook for “Delivered” and “Read”.",
-                "वेबहुक सेट नहीं है, इसलिए स्थिति “भेज दिया” पर रुक जाएगी। “पहुँच गया” और “पढ़ लिया” के लिए वेबहुक जोड़ें।",
-                "Webhook set nahi hai, isliye status “Bhej diya” par ruk jayega. “Pahunch gaya” aur “Padh liya” ke liye webhook jodo.",
+                "The status callback is not set, so the status will stop at “Sent”. For “Delivered” and “Read” a public https URL (APP_BASE_URL) is needed.",
+                "स्टेटस कॉलबैक सेट नहीं है, इसलिए स्थिति “भेज दिया” पर रुक जाएगी। “पहुँच गया” और “पढ़ लिया” के लिए सार्वजनिक https URL (APP_BASE_URL) चाहिए।",
+                "Status callback set nahi hai, isliye status “Bhej diya” par ruk jayega. “Pahunch gaya” aur “Padh liya” ke liye public https URL (APP_BASE_URL) chahiye.",
               )}
             </p>
           ) : null}

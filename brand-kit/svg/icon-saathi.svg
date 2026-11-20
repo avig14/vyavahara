@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <title>Saathi Hinglish assistant</title>
+  <rect width="96" height="96" rx="16" fill="#E0F5FD"/>
+  <path d="M20 26 Q20 18 28 18 H68 Q76 18 76 26 V54 Q76 62 68 62 H44 L30 76 V62 H28 Q20 62 20 54 Z" fill="#FFFFFF" stroke="#012970" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="38" cy="40" r="4" fill="#012970"/><circle cx="58" cy="40" r="4" fill="#012970"/>
+  <path d="M40 50 Q48 56 56 50" fill="none" stroke="#02BAF2" stroke-width="4" stroke-linecap="round"/>
+  <path d="M76 12 L79 20 L87 23 L79 26 L76 34 L73 26 L65 23 L73 20 Z" fill="#02BAF2"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="vyavahara-favicon-title">
+<title id="vyavahara-favicon-title">Vyavahara</title>
+<rect id="fav-tile" width="64" height="64" rx="14" fill="#012970"/>
+<g id="fav-rows"><rect x="12" y="13" width="40" height="12" rx="6" fill="#02BAF2"/><rect x="12" y="30" width="40" height="8" rx="4" fill="#FFFFFF"/><rect x="12" y="43" width="26" height="8" rx="4" fill="#ABC0D7"/></g>
+</svg>

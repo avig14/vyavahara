@@ -21,6 +21,9 @@
 .wordmark-latin { font-size: var(--text-lg); font-weight: 700; letter-spacing: var(--tracking-display); }
 .wordmark-deva { font-size: var(--text-sm); color: var(--color-on-navy-muted); }
 .drawer .wordmark, .sidebar .wordmark { min-height: var(--control-h); align-items: center; }
+/* The logo's navy half would vanish on the navy sidebar, so it sits on a white disc. The artwork itself is untouched. */
+.wordmark-logo { flex: none; padding: 2px; border-radius: 50%; background: #fff; }
+.logo-mark { flex: none; display: block; height: auto; }
 
 .nav-link { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: var(--space-sm); min-height: var(--control-h); padding: var(--space-xs) var(--space-md); color: var(--color-on-navy-muted); text-decoration: none; }
 .nav-label { font-size: var(--text-md); }

@@ -1,12 +1,14 @@
 /** PDF for a ReportData via @react-pdf/renderer (Node runtime). Same numbers as text + dashboard. */
 import path from "node:path";
-import { Document, Font, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { rupees, daysLabel, num } from "../format";
 import { fmtShortDate } from "../time";
 import type { ReportData } from "./build";
 
 // Helvetica has no ₹ glyph → register Noto Sans (TTF; react-pdf needs an absolute path in Node).
 const FONT_DIR = path.join(process.cwd(), "assets", "fonts");
+// The logo as supplied (256px render of the original SVG); read from disk like the fonts.
+const LOGO_PNG = path.join(process.cwd(), "public", "brand", "vyavahara-logo-256.png");
 let fontsReady = false;
 function ensureFonts() {
   if (fontsReady) return;
@@ -26,6 +28,8 @@ const C = { ink: "#10233f", mute: "#5d6b82", line: "#dfe5ee", brand: "#0a5bd6", 
 const st = StyleSheet.create({
   page: { fontFamily: "NotoSans", fontSize: 9, color: C.ink, padding: 32, paddingBottom: 48 },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", borderBottomWidth: 2, borderBottomColor: C.brand, paddingBottom: 8, marginBottom: 12 },
+  brand: { flexDirection: "row", alignItems: "center", gap: 10 },
+  logo: { width: 38, height: 38 },
   h1: { fontSize: 16, fontWeight: 700 },
   sub: { color: C.mute, fontSize: 9, marginTop: 2 },
   tiles: { flexDirection: "row", gap: 8, marginBottom: 10 },
@@ -85,9 +89,13 @@ export function ReportPdf({ r }: { r: ReportData }) {
     <Document title={`${r.merchantName} — ${r.period.label}`} author="Vyavahāra">
       <Page size="A4" style={st.page}>
         <View style={st.head}>
-          <View>
-            <Text style={st.h1}>{r.merchantName}</Text>
-            <Text style={st.sub}>Business report · {r.period.label}</Text>
+          <View style={st.brand}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image is not an <img> and has no alt prop */}
+            <Image src={LOGO_PNG} style={st.logo} />
+            <View>
+              <Text style={st.h1}>{r.merchantName}</Text>
+              <Text style={st.sub}>Business report · {r.period.label}</Text>
+            </View>
           </View>
           <Text style={st.sub}>Generated {fmtShortDate(new Date(r.generatedAt))}</Text>
         </View>
