@@ -1,4 +1,5 @@
 import { getCtx, handle, HttpError, json, readJson } from "@/lib/server/http";
+import { clientIp, hit } from "@/lib/server/rate-limit";
 import { paid } from "@/lib/soundbox/flow";
 import { paymentAnnouncement, sarvamConfigured, speak } from "@/lib/ingest/sarvam";
 
@@ -12,6 +13,7 @@ export const maxDuration = 60;
  */
 export const POST = (req: Request) =>
   handle(async () => {
+    if (!hit(`sb-pay:${clientIp(req)}`, Number(process.env.SOUNDBOX_TURNS_PER_10_MIN ?? 30), 10 * 60_000).ok) throw new HttpError(429, "Demo limit reached");
     const body = (await readJson(req)) as { amountPaise?: unknown; speak?: unknown };
     const amountPaise = body.amountPaise;
     if (typeof amountPaise !== "number" || !Number.isInteger(amountPaise) || amountPaise <= 0 || amountPaise > 10_000_000_00) throw new HttpError(400, "amountPaise must be a positive integer (paise)");

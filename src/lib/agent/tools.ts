@@ -34,6 +34,8 @@ export interface AgentEnv {
   snap: Snapshot;
   store: AgentStore;
   attachments: Attachment[];
+  /** called with the tool name each time the model runs a tool (Voice Saathi shows these) */
+  onTool?: (name: string) => void;
 }
 
 const PERIODS = ["today", "yesterday", "this_week", "last_week", "this_month", "last_month", "last_7_days", "last_30_days", "custom"] as const;
@@ -104,6 +106,7 @@ export function buildTools(env: AgentEnv) {
       description,
       inputSchema,
       run: async (a) => {
+        env.onTool?.(name);
         try {
           return JSON.stringify(await run(a));
         } catch (e) {

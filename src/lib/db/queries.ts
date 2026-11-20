@@ -264,7 +264,10 @@ export async function payVendorBill(db: Db, a: { merchantId: string; purchaseId:
   return { purchaseId: p.id, status, amountPaise: amount };
 }
 
-export async function recentConversation(db: Db, merchantId: string, channel: "wa" | "web", limit = 12) {
+/** Where a conversation happened: WhatsApp, dashboard chat, or the Soundbox voice mode. */
+export type Channel = "wa" | "web" | "voice";
+
+export async function recentConversation(db: Db, merchantId: string, channel: Channel, limit = 12) {
   const rows = await db
     .select()
     .from(s.conversations)
@@ -277,7 +280,7 @@ export async function recentConversation(db: Db, merchantId: string, channel: "w
 export async function saveConversationTurn(
   db: Db,
   merchantId: string,
-  channel: "wa" | "web",
+  channel: Channel,
   turn: { role: "user" | "assistant"; content: string }[],
 ) {
   if (!turn.length) return;
