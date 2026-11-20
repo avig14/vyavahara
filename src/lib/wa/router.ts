@@ -5,6 +5,7 @@
 import type { Db } from "../db/client";
 import { loadSnapshot, startWaMessage, markWaSent, markWaFailed } from "../db/queries";
 import { buildContext } from "../analytics/recommendations";
+import { khataOverview } from "../analytics/khata-risk";
 import { buildReport } from "../reports/build";
 import { reportText } from "../reports/text";
 import { resolveChoice } from "../agent/actions";
@@ -13,6 +14,9 @@ import { mintReportLink, baseUrl } from "../server/artifacts";
 import { rupees } from "../format";
 import { sendLongText, WaError, type WaConfig } from "./cloud";
 import { stockText, whatsappDigest } from "./digest";
+import { customerReportText, recommendationReportText, salesReportText, vendorReportText } from "./reports";
+import type { PeriodName } from "../time";
+import { voiceIntent } from "../soundbox/voice";
 
 export const MENU = [
   "*Namaste! Main Vyavahāra hoon* 🙏",
@@ -22,13 +26,41 @@ export const MENU = [
   "3️⃣ Udhaar (khata)",
   "4️⃣ Supplier payments",
   "5️⃣ PDF report",
+  "6️⃣ Sales report (_6 week_, _6 month_ bhi)",
+  "7️⃣ Customer report",
+  "8️⃣ Supplier report",
+  "9️⃣ Suggestions (kya karein)",
   "",
   "Ya seedha poochho, jaise _\"aaj kitni sale hui?\"_",
 ].join("\n");
 
 const GREETING = /^(hi|hii+|hello|hey|namaste|namaskar|menu|help|start|0)\b/i;
 
-export type Intent = "menu" | "report" | "stock" | "khata" | "suppliers" | "pdf" | "agent";
+export type Intent = "menu" | "report" | "stock" | "khata" | "suppliers" | "pdf" | "sales" | "customers" | "vendors" | "recs" | "agent";
+
+/**
+ * Typed questions we can answer from the reports without the AI ("aaj kitni sale hui", "kya khatam hone wala hai").
+ * Used only when no AI key is set; with a key the agent answers everything, including questions about one customer.
+ * Anything with a number is an entry ("Suresh 300") and never matches here.
+ */
+export function freeTextIntent(raw: string): Intent | null {
+  const t = raw.trim().toLowerCase();
+  if (!t || /\d/.test(t)) return null;
+  const v = voiceIntent(t);
+  if (v === "report" || v === "stock" || v === "khata" || v === "suppliers") return v;
+  if (/(sale|sales|bikri).*(week|hafte|hafta|month|mahine|mahina)/.test(t)) return "sales";
+  if (/(kitna|kiska|kiske|kaun|kis).*(udhaar|udhar|baaki|baki)/.test(t) || /^(udhaar|udhar|khata)( list| batao| dikhao)?$/.test(t)) return "khata";
+  if (/^(hisaab|hisab|report)( batao| dikhao)?$/.test(t)) return "report";
+  return null;
+}
+
+/** "6 week", "sales month", "bikri hafta" → which period the sales report covers (default today). */
+export function salesPeriod(raw: string | null): PeriodName {
+  const t = (raw ?? "").toLowerCase();
+  if (/month|mahin/.test(t)) return "this_month";
+  if (/week|hafta|hafte/.test(t)) return "this_week";
+  return "today";
+}
 
 /** Pure: which canned answer (if any) does this message ask for. */
 export function intentOf(raw: string | null, reply: string | null = null): Intent {
@@ -40,23 +72,40 @@ export function intentOf(raw: string | null, reply: string | null = null): Inten
   if (t === "3" || t === "khata" || t === "udhaar") return "khata";
   if (t === "4" || t === "supplier" || t === "suppliers") return "suppliers";
   if (t === "5" || t === "pdf") return "pdf";
+  if (/^(6|sales?|bikri)( report)?( (week|hafta|hafte|month|mahina|mahine|today|aaj))?$/.test(t) || /^6 (week|month)$/.test(t)) return "sales";
+  if (t === "7" || /^(customers?|grahak)( report)?$/.test(t)) return "customers";
+  if (t === "8" || /^(vendors?|suppliers?) report$/.test(t)) return "vendors";
+  if (t === "9" || /^(recommendations?|suggestions?|salah|sujhav|advice)( report)?$/.test(t)) return "recs";
   return "agent";
 }
 
-export async function answerFor(db: Db, merchantId: string, text: string | null, reply: string | null, now: Date): Promise<string> {
+/**
+ * `preview` is the on-screen WhatsApp preview: it must never change shop data. So a "1"/"2" never answers a waiting
+ * confirmation (those digits are menu taps there), and the agent runs read-only.
+ */
+/** The intent for a message: the menu digits and keywords, then (without an AI key) the typed questions we can answer from the reports. */
+export function resolveIntent(text: string | null, reply: string | null = null): Intent {
   const intent = intentOf(text, reply);
+  if (intent === "agent" && text && !process.env.ANTHROPIC_API_KEY) return freeTextIntent(text) ?? intent;
+  return intent;
+}
+
+export async function answerFor(db: Db, merchantId: string, text: string | null, reply: string | null, now: Date, opts: { preview?: boolean } = {}): Promise<string> {
+  const intent = resolveIntent(text, reply);
   // a waiting 1/2 confirmation wins over the menu digit, so "1" confirms instead of opening the report
-  if (text && (intent === "report" || intent === "stock")) {
+  if (!opts.preview && text && (intent === "report" || intent === "stock")) {
     const c = await resolveChoice(db, merchantId, text, now);
     if (c.handled) return c.reply;
   }
   if (intent === "menu") return MENU;
   if (intent === "agent") {
     if (!text) return "Abhi sirf text samajh paata hoon. *Hi* likho menu ke liye.";
-    if (!process.env.ANTHROPIC_API_KEY) return "Ab free sawal ka jawab nahi de sakta. Menu ke liye *Hi* likho.";
-    const c = await resolveChoice(db, merchantId, text, now);
-    if (c.handled) return c.reply;
-    return (await runAgent(db, merchantId, text, "wa", { now })).text;
+    if (!process.env.ANTHROPIC_API_KEY) return "Yeh sawal abhi samajh nahi paya. Menu se chuniye: *Hi* likhiye.";
+    if (!opts.preview) {
+      const c = await resolveChoice(db, merchantId, text, now);
+      if (c.handled) return c.reply;
+    }
+    return (await runAgent(db, merchantId, text, "wa", { now, readonly: opts.preview })).text;
   }
   if (intent === "pdf") {
     if (!baseUrl()) return "PDF link abhi nahi ban sakta (APP_BASE_URL set nahi hai).";
@@ -65,11 +114,21 @@ export async function answerFor(db: Db, merchantId: string, text: string | null,
   const snap = await loadSnapshot(db, merchantId, { now });
   const ctx = buildContext(snap);
   if (intent === "stock") return stockText(snap, ctx);
+  if (intent === "sales") return salesReportText(snap, salesPeriod(reply ?? text), ctx);
+  if (intent === "customers") return customerReportText(snap);
+  if (intent === "vendors") return vendorReportText(snap, ctx);
+  if (intent === "recs") return recommendationReportText(snap, ctx);
   const rep = buildReport(snap, { period: "today", ctx });
   if (intent === "khata") {
     const k = rep.khata;
     if (k.totalDuePaise <= 0) return "📒 Koi udhaar baaki nahi hai.";
-    return [`📒 *Udhaar baaki ${rupees(k.totalDuePaise)}*`, ...k.red.slice(0, 5).map((a) => `🔴 ${a.name} ${rupees(a.outstandingPaise)} (${a.oldestUnpaidDays} din)`)].join("\n");
+    // everyone who owes, biggest first, so the names add up to the total shown
+    const owing = khataOverview(snap).accounts.filter((a) => a.outstandingPaise > 0).sort((a, b) => b.outstandingPaise - a.outstandingPaise);
+    return [
+      `📒 *Udhaar baaki ${rupees(k.totalDuePaise)}* (${owing.length} log)`,
+      ...owing.slice(0, 5).map((a) => `${a.emoji} ${a.name} ${rupees(a.outstandingPaise)} (${a.oldestUnpaidDays} din)`),
+      ...(owing.length > 5 ? [`+${owing.length - 5} aur`] : []),
+    ].join("\n");
   }
   if (intent === "suppliers") {
     if (!rep.payablesDue.length) return "🧾 Koi supplier payment baaki nahi hai.";
