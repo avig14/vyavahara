@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Button, DataTable, Disclosure, EmptyState, ErrorState, Field, Input, NumberField, PageHeader, PaiseField, Select, Stat, Stats, Switch, TabList, useToast, type Column } from "@/components/ui";
+import { Badge, Button, DataTable, EmptyState, ErrorState, Field, Input, NumberField, PageHeader, PaiseField, Select, Stat, Stats, Switch, TabList, useToast, type Column } from "@/components/ui";
 import { postJson, putJson, toApiError, useApi } from "@/lib/ui/api";
 import { rupees } from "@/lib/format";
 
@@ -115,29 +115,25 @@ function Rules({ initial, onSaved }: { initial: CallsSettings; onSaved: () => vo
         <Switch checked={d.enabled} onChange={(v) => set("enabled", v)} label="Call Saathi chalu" showState />
       </div>
       <div className="cs-grid">
-        <Field label="Udhaar kitne din purana ho to call karein">
+        <Field label="Pehli call kab" hint="Udhaar itne din purana ho jaye to call jayegi.">
           <NumberField value={d.minOverdueDays} onChange={(v) => v !== null && set("minOverdueDays", v)} min={7} max={365} suffix="din" />
         </Field>
-        <Field label="Paisa na aaye to dobara kab">
+        <Field label="Paisa na aaye to dobara kab" hint="Pehli call ke baad kitne din mein phir call karein.">
           <Select options={gapOptions(d.retryGapDays)} value={String(d.retryGapDays)} onChange={(e) => set("retryGapDays", Number(e.target.value))} />
         </Field>
+        <Field label="Zyada se zyada kitni calls" hint="Ek customer ko itni calls ke baad ruk jayenge.">
+          <NumberField value={d.maxAttempts} onChange={(v) => v !== null && set("maxAttempts", v)} min={1} max={10} suffix="calls" />
+        </Field>
+        <Field label="Kam se kam kitna baaki" hint="Isse kam udhaar par call nahi jayegi.">
+          <PaiseField valuePaise={d.minOutstandingPaise} onChangePaise={(v) => v !== null && set("minOutstandingPaise", v)} minPaise={0} />
+        </Field>
+        <Field label="Call kab se (samay)" hint="Isse pehle call nahi jayegi.">
+          <Select options={hourOptions(0, 23)} value={String(d.fromHour)} onChange={(e) => set("fromHour", Number(e.target.value))} />
+        </Field>
+        <Field label="Call kab tak (samay)" hint="Iske baad call nahi jayegi." error={hoursOk ? undefined : "Shuru ka samay baad ke samay se pehle hona chahiye"}>
+          <Select options={hourOptions(1, 24)} value={String(d.untilHour)} onChange={(e) => set("untilHour", Number(e.target.value))} aria-invalid={!hoursOk || undefined} />
+        </Field>
       </div>
-      <Disclosure summary="Aur options">
-        <div className="cs-grid">
-          <Field label="Ek customer ko zyada se zyada">
-            <NumberField value={d.maxAttempts} onChange={(v) => v !== null && set("maxAttempts", v)} min={1} max={10} suffix="calls" />
-          </Field>
-          <Field label="Kam se kam baaki">
-            <PaiseField valuePaise={d.minOutstandingPaise} onChangePaise={(v) => v !== null && set("minOutstandingPaise", v)} minPaise={0} />
-          </Field>
-          <Field label="Call kab se">
-            <Select options={hourOptions(0, 23)} value={String(d.fromHour)} onChange={(e) => set("fromHour", Number(e.target.value))} />
-          </Field>
-          <Field label="Call kab tak" error={hoursOk ? undefined : "Shuru ka samay pehle hona chahiye"}>
-            <Select options={hourOptions(1, 24)} value={String(d.untilHour)} onChange={(e) => set("untilHour", Number(e.target.value))} aria-invalid={!hoursOk || undefined} />
-          </Field>
-        </div>
-      </Disclosure>
       {dirty ? (
         <div className="cs-actions">
           <Button variant="primary" onClick={save} disabled={busy || !hoursOk}>
