@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+<title>Khata credit book</title>
+<rect x="0" y="0" width="96" height="96" rx="16" fill="#E0F5FD" id="icn-bg"/>
+<g id="icn-book">
+<path d="M20 22H44Q48 22 48 26V74Q44 70 40 70H20Z" fill="#FFFFFF" stroke="#012970" stroke-width="4" stroke-linejoin="round"/>
+<path d="M76 22H52Q48 22 48 26V74Q52 70 56 70H76Z" fill="#FFFFFF" stroke="#012970" stroke-width="4" stroke-linejoin="round"/>
+<rect x="26" y="34" width="16" height="5" rx="2.5" fill="#02BAF2"/>
+<rect x="26" y="46" width="12" height="5" rx="2.5" fill="#012970"/>
+<circle cx="68" cy="60" r="14" fill="#FFF2D8" stroke="#935B00" stroke-width="4"/>
+<path d="M68 52V60L74 64" fill="none" stroke="#935B00" stroke-width="4" stroke-linecap="round"/>
+</g>
+</svg>

@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   // react-pdf loads the TTF fonts and the logo PNG from disk at runtime; make sure Vercel ships them with the PDF route.
   outputFileTracingIncludes: {
     "/api/reports/pdf/[token]": ["./assets/fonts/**/*", "./public/brand/vyavahara-logo-256.png"],
+    "/api/wa/card/[kind]": ["./assets/fonts/**/*", "./public/wa/**/*"],
   },
   turbopack: {
     rules: {

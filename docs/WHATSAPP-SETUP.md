@@ -1,5 +1,7 @@
 # WhatsApp setup (Twilio sandbox first, Meta Cloud API as fallback)
 
+> **No chat account yet? Use the preview.** `/dashboard/whatsapp` is a WhatsApp-style chat that runs the same router as the bot (the 5-module menu, the sales / customer / supplier / suggestion reports, the agent) against live data. Nothing is sent to any provider, so it needs no credentials. `POST /api/whatsapp/simulate {text}` is the route behind it. The preview is read-only by design: it never answers a waiting 1/2 confirmation, never writes to the shop data and the agent cannot write. Browser check: `npm run dev`, then `node scripts/e2e-whatsapp-preview.mjs` (needs Edge or Chrome).
+
 Vyavahāra's WhatsApp agent runs on **Twilio** (the channel the PRD names). The Twilio sandbox needs no business verification, but a trial account cannot send free text (see the note below).
 The Meta Cloud API path is still in the code and takes over only if the Twilio env vars are empty.
 

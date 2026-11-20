@@ -7,6 +7,8 @@ import { getWaState, loadSnapshot, markWaFailed, markWaSent, startWaMessage } fr
 import { maskPhone, sendLongText, sendTemplate, WaError, type WaConfig } from "./cloud";
 import { deliver, type Channel } from "./channel";
 import { whatsappDigest } from "./digest";
+import { reportTextFor, type ReportKind } from "./reports";
+import type { PeriodName } from "../time";
 
 /** WhatsApp only allows free text within 24 hours of the owner's last message to us. */
 export const WINDOW_MS = 24 * 3_600_000;
@@ -22,7 +24,7 @@ export type SendOutcome =
   | { ok: true; kind: "template"; to: string; messageId: string; notice: string }
   | { ok: false; reason: "no_number" | "wa_error"; errorKind?: WaError["kind"]; message: string; to?: string; messageId?: string };
 
-export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfig, opts: { now?: Date; fetch?: typeof fetch } = {}): Promise<SendOutcome> {
+export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfig, opts: { now?: Date; fetch?: typeof fetch; kind?: ReportKind; period?: PeriodName } = {}): Promise<SendOutcome> {
   const now = opts.now ?? new Date();
   const f = opts.fetch ?? fetch;
   const state = await getWaState(db, merchantId);
@@ -31,7 +33,7 @@ export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfi
   const shown = maskPhone(to);
 
   const snap = await loadSnapshot(db, merchantId, { now });
-  const text = whatsappDigest(snap).text;
+  const text = !opts.kind || opts.kind === "daily" ? whatsappDigest(snap).text : reportTextFor(snap, opts.kind, opts.period);
   const id = await startWaMessage(db, merchantId, "report", text.split("\n")[0]);
   try {
     const r = await sendLongText(to, text, cfg, f);
@@ -72,7 +74,7 @@ export async function sendReportToOwner(db: Db, merchantId: string, cfg: WaConfi
  * Same "Send report" button for Twilio (or any Channel). There is no template fallback here: outside the 24h window the owner
  * has to message us first, so we say that instead of sending something that will fail.
  */
-export async function sendReportViaChannel(db: Db, ch: Channel, merchantId: string, opts: { now?: Date } = {}): Promise<SendOutcome> {
+export async function sendReportViaChannel(db: Db, ch: Channel, merchantId: string, opts: { now?: Date; kind?: ReportKind; period?: PeriodName } = {}): Promise<SendOutcome> {
   const now = opts.now ?? new Date();
   const state = await getWaState(db, merchantId);
   if (!state.phone) return { ok: false, reason: "no_number", message: "Pehle WhatsApp number daalo." };
@@ -80,7 +82,7 @@ export async function sendReportViaChannel(db: Db, ch: Channel, merchantId: stri
     return { ok: false, reason: "wa_error", errorKind: "window", to: maskPhone(state.phone), message: "Pehle apne phone se bot ko 'Hi' bhejo (24 ghante ki window band hai), phir Send dabao." };
   }
   const snap = await loadSnapshot(db, merchantId, { now });
-  const r = await deliver(db, ch, merchantId, state.phone, [{ text: whatsappDigest(snap).text }], "report", now);
+  const r = await deliver(db, ch, merchantId, state.phone, [{ text: !opts.kind || opts.kind === "daily" ? whatsappDigest(snap).text : reportTextFor(snap, opts.kind, opts.period) }], "report", now);
   if (r.error) return { ok: false, reason: "wa_error", errorKind: r.error.code === 63038 ? "rate" : "other", message: r.error.message, to: maskPhone(state.phone) };
   return { ok: true, kind: "report", to: maskPhone(state.phone), parts: r.sent, messageId: "" };
 }

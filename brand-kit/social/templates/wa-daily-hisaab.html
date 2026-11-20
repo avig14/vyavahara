@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="size" content="1080x1080">
+<meta name="kind" content="whatsapp">
+<title>wa-daily-hisaab</title>
+<link rel="stylesheet" href="base.css">
+<style>.card{height:1080px}</style>
+</head><body>
+<div class="card"><header class="top"><img src="../../brand/vyavahara-logo-mark-v1.svg" alt=""><b>Vyavahāra</b><span>व्यवहार</span></header>
+<main class="pad" style="gap:26px">
+<div><div class="label">{{date}}</div><div class="h2">Aaj ka hisaab</div></div>
+<div style="display:flex;gap:18px"><div class="stat hl"><div class="label">Total</div><div class="v">₹{{total}}</div></div>
+<div class="stat"><div class="label">UPI</div><div class="v">₹{{upi}}</div></div>
+<div class="stat"><div class="label">Cash</div><div class="v">₹{{cash}}</div></div></div>
+<div>
+<div class="tr"><span class="t">{{r1_time}}</span><span>{{r1_items}}</span><span class="p {{r1_cls}}">{{r1_by}}</span><span class="a">₹{{r1_amt}}</span></div>
+<div class="tr"><span class="t">{{r2_time}}</span><span>{{r2_items}}</span><span class="p {{r2_cls}}">{{r2_by}}</span><span class="a">₹{{r2_amt}}</span></div>
+<div class="tr"><span class="t">{{r3_time}}</span><span>{{r3_items}}</span><span class="p {{r3_cls}}">{{r3_by}}</span><span class="a">₹{{r3_amt}}</span></div>
+<div class="tr"><span class="t">{{r4_time}}</span><span>{{r4_items}}</span><span class="p {{r4_cls}}">{{r4_by}}</span><span class="a">₹{{r4_amt}}</span></div>
+<div class="tr"><span class="t">{{r5_time}}</span><span>{{r5_items}}</span><span class="p {{r5_cls}}">{{r5_by}}</span><span class="a">₹{{r5_amt}}</span></div>
+</div>
+<div style="display:flex;gap:14px;margin-top:auto"><span class="pill warn" style="font-size:26px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Udhaar baaki ₹{{udhaar}}</span><span class="pill info" style="font-size:26px">Stock kam: {{low}} item</span></div>
+</main><footer class="foot"><span>Aur poochhein: "stock check", "udhaar kitna baaki?"</span><em>{{note}}</em></footer></div>
+</body></html>

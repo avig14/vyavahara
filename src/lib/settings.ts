@@ -166,6 +166,27 @@ export const settingsSchema = z.object({
     })
     .prefault({}),
 
+  /** Call Saathi: automatic reminder calls to customers with long-overdue udhaar */
+  calls: z
+    .object({
+      /** master switch; off until the owner turns it on */
+      enabled: z.boolean().default(false),
+      /** start calling once the oldest unpaid credit is at least this many days old */
+      minOverdueDays: int(7, 365, 30),
+      /** ignore balances below this, paise */
+      minOutstandingPaise: int(0, 100_000_00, 500_00),
+      /** give up after this many calls to one customer */
+      maxAttempts: int(1, 10, 3),
+      /** wait at least this many days between calls to the same customer */
+      retryGapDays: int(1, 30, 3),
+      /** calls only inside [fromHour, untilHour) IST. The merchant decides. */
+      fromHour: int(0, 23, 10),
+      untilHour: int(1, 24, 19),
+      /** safety cap per run */
+      maxCallsPerRun: int(1, 100, 10),
+    })
+    .prefault({}),
+
   /** extra festivals the merchant cares about, merged with the built-in calendar */
   festivals: z
     .array(
@@ -211,5 +232,6 @@ export function applySettingsPatch(current: MerchantSettings, patch: unknown): S
   const s = r.data;
   if (s.khata.greenMax >= s.khata.amberMax) return { ok: false, error: "khata.greenMax must be below khata.amberMax" };
   if (s.alerts.sendFromHour >= s.alerts.sendUntilHour) return { ok: false, error: "alerts.sendFromHour must be before sendUntilHour" };
+  if (s.calls.fromHour >= s.calls.untilHour) return { ok: false, error: "calls.fromHour must be before calls.untilHour" };
   return { ok: true, settings: s };
 }

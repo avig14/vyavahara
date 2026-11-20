@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img" aria-labelledby="vyavahara-profile-title">
+<title id="vyavahara-profile-title">Vyavahara WhatsApp profile picture</title>
+<rect id="pp-bg" width="640" height="640" fill="#012970"/>
+<circle id="pp-ring" cx="320" cy="320" r="296" fill="none" stroke="#02BAF2" stroke-width="12"/>
+<g id="pp-rows"><rect x="170" y="206" width="300" height="84" rx="42" fill="#02BAF2"/><rect x="170" y="322" width="300" height="56" rx="28" fill="#FFFFFF"/><rect x="170" y="410" width="190" height="56" rx="28" fill="#ABC0D7"/></g>
+</svg>

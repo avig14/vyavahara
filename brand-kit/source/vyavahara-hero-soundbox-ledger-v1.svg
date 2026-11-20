@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<title>A soundbox payment lands as a line in the rozmel ledger, which feeds Khata, Stock and Saathi</title>
+<rect x="0" y="0" width="1200" height="760" fill="#F7F9FC" id="hero-bg"/>
+<g id="hero-blobs">
+<circle cx="860" cy="330" r="300" fill="#E0F5FD"/>
+<circle cx="150" cy="610" r="120" fill="#E0F5FD"/>
+<circle cx="1120" cy="90" r="46" fill="#97DCF9"/>
+</g>
+<g id="hero-soundbox">
+<rect x="86" y="226" width="220" height="270" rx="28" fill="#012970" id="hero-soundbox-body"/>
+<rect x="86" y="226" width="220" height="40" rx="20" fill="#021D50"/>
+<circle cx="196" cy="246" r="6" fill="#02BAF2"/>
+<rect x="116" y="290" width="160" height="70" rx="12" fill="#02BAF2" id="hero-soundbox-screen"/>
+<rect x="132" y="308" width="70" height="10" rx="5" fill="#FFFFFF"/>
+<rect x="132" y="328" width="110" height="16" rx="8" fill="#FFFFFF"/>
+<circle cx="136" cy="402" r="6" fill="#ABC0D7"/>
+<circle cx="166" cy="402" r="6" fill="#ABC0D7"/>
+<circle cx="196" cy="402" r="6" fill="#ABC0D7"/>
+<circle cx="226" cy="402" r="6" fill="#ABC0D7"/>
+<circle cx="256" cy="402" r="6" fill="#ABC0D7"/>
+<circle cx="136" cy="428" r="6" fill="#ABC0D7"/>
+<circle cx="166" cy="428" r="6" fill="#ABC0D7"/>
+<circle cx="196" cy="428" r="6" fill="#ABC0D7"/>
+<circle cx="226" cy="428" r="6" fill="#ABC0D7"/>
+<circle cx="256" cy="428" r="6" fill="#ABC0D7"/>
+<circle cx="136" cy="454" r="6" fill="#ABC0D7"/>
+<circle cx="166" cy="454" r="6" fill="#ABC0D7"/>
+<circle cx="196" cy="454" r="6" fill="#ABC0D7"/>
+<circle cx="226" cy="454" r="6" fill="#ABC0D7"/>
+<circle cx="256" cy="454" r="6" fill="#ABC0D7"/>
+</g>
+<g id="hero-soundwaves">
+<path d="M330 300Q364 340 330 380" fill="none" stroke="#02BAF2" stroke-width="8" stroke-linecap="round"/>
+<path d="M356 270Q414 340 356 410" fill="none" stroke="#64D3F6" stroke-width="8" stroke-linecap="round"/>
+<path d="M382 240Q464 340 382 440" fill="none" stroke="#ADE6F9" stroke-width="8" stroke-linecap="round"/>
+</g>
+<g id="hero-flow">
+<path d="M310 520Q400 600 500 470" fill="none" stroke="#012970" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 14"/>
+<polygon points="504,446 514,476 486,470" fill="#012970"/>
+</g>
+<g id="hero-ledger">
+<rect x="520" y="130" width="580" height="410" rx="16" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hero-ledger-card"/>
+<path d="M520 194V146Q520 130 536 130H1084Q1100 130 1100 146V194Z" fill="#012970" id="hero-ledger-header"/>
+<rect x="548" y="156" width="46" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="636" y="156" width="90" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="800" y="156" width="56" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="900" y="156" width="64" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="1000" y="156" width="70" height="10" rx="5" fill="#02BAF2"/>
+<rect x="522" y="196" width="576" height="60" fill="#E0F5FD" id="hero-ledger-newest"/>
+<rect x="522" y="196" width="6" height="60" fill="#02BAF2"/>
+<rect x="548" y="220" width="40" height="10" rx="5" fill="#012970"/>
+<rect x="636" y="220" width="110" height="10" rx="5" fill="#012970"/>
+<rect x="800" y="214" width="52" height="22" rx="11" fill="#02BAF2"/>
+<rect x="900" y="220" width="46" height="10" rx="5" fill="#012970"/>
+<rect x="1000" y="218" width="66" height="14" rx="7" fill="#012970"/>
+<rect x="522" y="256" width="576" height="2" fill="#DAE0E7"/>
+<rect x="548" y="280" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="636" y="280" width="90" height="10" rx="5" fill="#7A8798"/>
+<rect x="800" y="274" width="52" height="22" rx="11" fill="#97DCF9"/>
+<rect x="900" y="280" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="1000" y="280" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="522" y="316" width="576" height="2" fill="#DAE0E7"/>
+<rect x="548" y="340" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="636" y="340" width="130" height="10" rx="5" fill="#7A8798"/>
+<rect x="800" y="334" width="52" height="22" rx="11" fill="#DAE0E7"/>
+<rect x="900" y="340" width="52" height="10" rx="5" fill="#7A8798"/>
+<rect x="1000" y="340" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="522" y="376" width="576" height="2" fill="#DAE0E7"/>
+<rect x="548" y="400" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="636" y="400" width="80" height="10" rx="5" fill="#7A8798"/>
+<rect x="800" y="394" width="52" height="22" rx="11" fill="#97DCF9"/>
+<rect x="900" y="400" width="52" height="10" rx="5" fill="#7A8798"/>
+<rect x="1000" y="400" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="522" y="436" width="576" height="2" fill="#DAE0E7"/>
+<rect x="548" y="460" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="636" y="460" width="100" height="10" rx="5" fill="#7A8798"/>
+<rect x="800" y="454" width="52" height="22" rx="11" fill="#97DCF9"/>
+<rect x="900" y="460" width="52" height="10" rx="5" fill="#7A8798"/>
+<rect x="1000" y="460" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="522" y="496" width="576" height="42" fill="#F7F9FC"/>
+<rect x="548" y="512" width="80" height="10" rx="5" fill="#012970"/>
+<rect x="990" y="508" width="80" height="18" rx="9" fill="#02BAF2"/>
+</g>
+<g id="hero-modules">
+<path d="M610 540L610 590" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<path d="M810 540L810 590" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<path d="M1010 540L1010 590" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<circle cx="610" cy="540" r="7" fill="#02BAF2"/>
+<circle cx="810" cy="540" r="7" fill="#02BAF2"/>
+<circle cx="1010" cy="540" r="7" fill="#02BAF2"/>
+<rect x="520" y="590" width="180" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hero-module-khata"/>
+<rect x="540" y="610" width="44" height="44" rx="10" fill="#FFF2D8"/>
+<circle cx="562" cy="632" r="12" fill="none" stroke="#935B00" stroke-width="4"/>
+<path d="M562 625V632L568 636" fill="none" stroke="#935B00" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="540" y="670" width="90" height="10" rx="5" fill="#012970"/>
+<rect x="720" y="590" width="180" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hero-module-stock"/>
+<rect x="740" y="610" width="44" height="44" rx="10" fill="#E0F5FD"/>
+<rect x="750" y="636" width="12" height="10" fill="#012970"/>
+<rect x="764" y="626" width="12" height="20" fill="#02BAF2"/>
+<rect x="740" y="670" width="70" height="10" rx="5" fill="#012970"/>
+<rect x="920" y="590" width="180" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hero-module-saathi"/>
+<rect x="940" y="610" width="44" height="44" rx="10" fill="#E0F5FD"/>
+<path d="M950 624Q950 620 954 620H970Q974 620 974 624V636Q974 640 970 640H960L953 647V640Q950 640 950 636Z" fill="#012970"/>
+<circle cx="958" cy="630" r="2.5" fill="#FFFFFF"/>
+<circle cx="966" cy="630" r="2.5" fill="#FFFFFF"/>
+<rect x="940" y="670" width="100" height="10" rx="5" fill="#012970"/>
+</g>
+<g id="hero-coins">
+<circle cx="120" cy="560" r="26" fill="#02BAF2"/>
+<circle cx="120" cy="560" r="15" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+<circle cx="176" cy="600" r="20" fill="#97DCF9"/>
+<circle cx="176" cy="600" r="11" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+</g>
+</svg>

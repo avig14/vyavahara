@@ -19,6 +19,7 @@ import { deadStockView, lostSalesView, priceChanges, reorderLines } from "../ana
 import { buildReport } from "../reports/build";
 import { reportText } from "../reports/text";
 import { stockText } from "../wa/digest";
+import { customerReportText, recommendationReportText, salesReportText, vendorReportText, withoutFoot } from "../wa/reports";
 
 export interface MenuEnv {
   snap: Snapshot;
@@ -55,10 +56,10 @@ interface ModuleDef {
 
 export const MODULES: Record<ModuleKey, ModuleDef> = {
   "1": { emoji: "📦", title: "Inventory", rec: "inventory", items: ["Stock dekho (low / out / all)", "Kya khatam hone wala hai?", "Kya order karna hai?", "Lost sales (maanga, nahi tha)", "Dead stock (nahi bik raha)", "Stock add karo (bill photo / bolo)", "Inventory suggestions"] },
-  "2": { emoji: "🚚", title: "Vendors", rec: "vendors", items: ["Kisko kitna dena hai", "Purchase order banao", "Price badle?", "Vendor ko payment record karo", "Vendor suggestions"] },
-  "3": { emoji: "👥", title: "Customers & Khata", rec: "khata", items: ["Kiske kitne baaki hai", "Udhaar / payment likho", "⚠️ Risky customers", "Reminder message banao", "Regular / naye / gaye hue customers", "Khata suggestions"] },
-  "4": { emoji: "📊", title: "Reports & Insights", rec: "growth", items: ["Aaj ka report", "Is hafte ka report", "Is mahine ka report", "Custom dates", "PDF mein bhejo", "Kuch alag hua?", "Top 3 suggestions"] },
-  "5": { emoji: "🚀", title: "Growth & Finance", rec: "growth", items: ["Festival plan", "Paise ka hisaab (14 din)", "Loan eligibility check", "GST summary", "Payment screenshot check", "Growth suggestions"] },
+  "2": { emoji: "🚚", title: "Vendors", rec: "vendors", items: ["Kisko kitna dena hai", "Purchase order banao", "Price badle?", "Vendor ko payment record karo", "Vendor suggestions", "Supplier report (poora)"] },
+  "3": { emoji: "👥", title: "Customers & Khata", rec: "khata", items: ["Kiske kitne baaki hai", "Udhaar / payment likho", "⚠️ Risky customers", "Reminder message banao", "Regular / naye / gaye hue customers", "Khata suggestions", "Customer report (poora)"] },
+  "4": { emoji: "📊", title: "Reports & Insights", rec: "growth", items: ["Aaj ka report", "Is hafte ka report", "Is mahine ka report", "Custom dates", "PDF mein bhejo", "Kuch alag hua?", "Top 3 suggestions", "Sales report (munafa, top items)"] },
+  "5": { emoji: "🚀", title: "Growth & Finance", rec: "growth", items: ["Festival plan", "Paise ka hisaab (14 din)", "Loan eligibility check", "GST summary", "Payment screenshot check", "Growth suggestions", "Saari suggestions (module-wise)"] },
 };
 
 export const isModuleKey = (s: string): s is ModuleKey => s in MODULES;
@@ -274,6 +275,8 @@ export function renderLeaf(key: ModuleKey, n: number, env: MenuEnv): Leaf | null
     }
     case "2.5":
       return { text: recList(env, "vendors", "💡 *Vendor suggestions*") };
+    case "2.6":
+      return t([withoutFoot(vendorReportText(snap, ctx))]);
 
     /* ---- 3 customers & khata ---- */
     case "3.1": {
@@ -301,6 +304,8 @@ export function renderLeaf(key: ModuleKey, n: number, env: MenuEnv): Leaf | null
     }
     case "3.6":
       return { text: recList(env, "khata", "💡 *Khata suggestions*") };
+    case "3.7":
+      return t([withoutFoot(customerReportText(snap))]);
 
     /* ---- 4 reports ---- */
     case "4.1":
@@ -320,6 +325,8 @@ export function renderLeaf(key: ModuleKey, n: number, env: MenuEnv): Leaf | null
     }
     case "4.7":
       return { text: recList(env, null, "💡 *Top 3 suggestions*") };
+    case "4.8":
+      return t([withoutFoot(salesReportText(snap, "today", ctx))], "growth");
 
     /* ---- 5 growth & finance ---- */
     case "5.1": {
@@ -352,6 +359,8 @@ export function renderLeaf(key: ModuleKey, n: number, env: MenuEnv): Leaf | null
       return { text: ["🧾 *Payment screenshot check*", "Customer ka payment screenshot yahan forward karo 📷", "Main dekhunga ki payment sach mein aaya ya nahi.", "", NAV].join("\n"), next: { kind: "screenshot" } };
     case "5.6":
       return { text: recList(env, "growth", "💡 *Growth suggestions*") };
+    case "5.7":
+      return t([withoutFoot(recommendationReportText(snap, ctx))]);
   }
   return null;
 }

@@ -1,0 +1,20 @@
+{
+  "wa-payment-received": {
+    "amount": "250", "items": "Atta 5 kg", "time": "9:40", "total": "350", "note": "Sample data"
+  },
+  "wa-daily-hisaab": {
+    "date": "Aaj", "total": "650", "upi": "450", "cash": "200", "udhaar": "1,200", "low": "1", "note": "Sample data",
+    "r1_time": "11:30", "r1_items": "Paani, 2 bottles", "r1_by": "UPI",  "r1_cls": "",     "r1_amt": "40",
+    "r2_time": "11:02", "r2_items": "Maggi, 4 packs",   "r2_by": "UPI",  "r2_cls": "",     "r2_amt": "60",
+    "r3_time": "10:15", "r3_items": "Chai patti, sugar","r3_by": "Cash", "r3_cls": "cash", "r3_amt": "200",
+    "r4_time": "9:40",  "r4_items": "Atta 5 kg",        "r4_by": "UPI",  "r4_cls": "",     "r4_amt": "250",
+    "r5_time": "9:05",  "r5_items": "Doodh, bread",     "r5_by": "UPI",  "r5_cls": "",     "r5_amt": "100"
+  },
+  "wa-udhaar-reminder": {
+    "customer": "Sharma ji", "amount": "1,200", "days": "12", "shop": "Gupta Kirana", "note": "Sample data"
+  },
+  "wa-stock-alert": {
+    "item": "Atta", "left": "2 kg", "meter": "12", "supplier": "Mohan bhai", "qty": "25 kg", "note": "Sample data"
+  },
+  "wa-welcome": { "note": "" }
+}

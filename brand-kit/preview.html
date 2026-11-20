@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vyavahara SVG assets: preview</title>
+<style>
+body{margin:0;padding:24px;font:15px/1.5 system-ui,sans-serif;background:#F7F9FC;color:#0d1a32}
+h1,h2{color:#012970;margin:24px 0 8px}h2{font-size:18px;border-bottom:2px solid #DAE0E7;padding-bottom:4px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+figure{margin:0}figcaption{font-size:12px;color:#4d5969;margin-top:4px}
+.card{background:#fff;border:1px solid #DAE0E7;border-radius:8px;padding:12px}
+img{display:block;max-width:100%;height:auto}
+.sw{display:inline-block;width:56px;height:36px;border:1px solid #DAE0E7;vertical-align:middle;margin-right:6px}
+.phone{width:375px;border:8px solid #012970;border-radius:24px;overflow:hidden;background:#F7F9FC}
+.icons img{width:96px}
+</style></head><body>
+<h1>Vyavahāra SVG assets (v1)</h1>
+<p>Web = <code>web/</code> (optimised, aria, currentColor icons). Canva = <code>canva/</code> (strokes outlined, solid fills). Compare each pair: they should look identical.</p>
+
+<h2>Palette tokens</h2>
+<p><span class="sw" style="background:#012970"></span>navy #012970 <span class="sw" style="background:#02BAF2"></span>cyan #02BAF2 <span class="sw" style="background:#E0F5FD"></span>soft #E0F5FD <span class="sw" style="background:#97DCF9"></span>line #97DCF9 <span class="sw" style="background:#F7F9FC"></span>paper #F7F9FC</p>
+
+<h2>Icons: web (top) vs Canva (bottom)</h2>
+<div class="icons">
+<div class="row" id="w"></div><div class="row" id="c" style="margin-top:12px"></div></div>
+<script>
+const ic=["rozmel","khata","stock","saathi","soundbox"];
+for(const [id,dir] of [["w","web"],["c","canva"]])document.getElementById(id).innerHTML=ic.map(n=>`<figure><img src="${dir}/vyavahara-icon-${n}-v1.svg" alt=""><figcaption>${n}</figcaption></figure>`).join("");
+</script>
+
+<h2>Hero: desktop (web) and mobile (web, 375px frame)</h2>
+<div class="row">
+  <div class="card" style="flex:1;min-width:360px"><img src="web/vyavahara-hero-soundbox-ledger-v1.svg" alt="Hero"><figcaption>vyavahara-hero-soundbox-ledger-v1 (1200×760)</figcaption></div>
+  <div><div class="phone"><img src="web/vyavahara-hero-mobile-soundbox-ledger-v1.svg" alt="Hero mobile"></div><figcaption>vyavahara-hero-mobile-soundbox-ledger-v1 (750×900)</figcaption></div>
+</div>
+
+<h2>Hero: Canva-safe (outlined)</h2>
+<div class="row">
+  <div class="card" style="flex:1;min-width:360px"><img src="canva/vyavahara-hero-soundbox-ledger-v1.svg" alt=""></div>
+  <div class="card" style="width:300px"><img src="canva/vyavahara-hero-mobile-soundbox-ledger-v1.svg" alt=""></div>
+</div>
+
+<h2>Social / OG art (PNG render, 1200×630). Type the title over the calm left area in Canva</h2>
+<div class="card" style="max-width:1200px"><img src="png/vyavahara-og-soundbox-ledger-v1.png" alt="OG art"></div>
+
+<h2>Payment flow diagram: web vs Canva</h2>
+<div class="card"><img src="web/vyavahara-diagram-payment-flow-v1.svg" alt=""></div>
+<div class="card" style="margin-top:12px"><img src="canva/vyavahara-diagram-payment-flow-v1.svg" alt=""></div>
+
+<h2>Accents</h2>
+<div class="card"><img src="web/vyavahara-divider-ledger-rule-v1.svg" alt=""><br><img src="web/vyavahara-accent-hero-underline-v1.svg" alt="" style="width:400px"></div>
+<h2>Background</h2>
+<div class="card"><img src="web/vyavahara-bg-ledger-lines-v1.svg" alt="" style="max-height:200px;width:100%;object-fit:cover"></div>
+</body></html>

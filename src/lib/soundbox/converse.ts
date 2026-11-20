@@ -4,15 +4,17 @@
  * Returns the steps it took so the simulator can draw the pipeline.
  */
 import type { Db } from "../db/client";
-import { getOpenPending, loadSnapshot, saveConversationTurn } from "../db/queries";
+import { createPendingAction, getOpenPending, loadSnapshot, saveConversationTurn } from "../db/queries";
+import { khataOverview } from "../analytics/khata-risk";
+import { mentionsCall, parseCallRequest } from "../calls/voice-intent";
 import { applyChoice, type PendingRow } from "../agent/actions";
 import { runAgent } from "../agent/run";
 import { buildContext } from "../analytics/recommendations";
 import { buildReport } from "../reports/build";
 import { attachmentLinks } from "../server/artifacts";
-import { buildInsights, parseVoiceChoice, spokenGreeting, spokenKhata, spokenMenu, spokenReport, spokenStock, spokenSuppliers, toSpoken, voiceIntent, type Insight, type VoiceIntent } from "./voice";
+import { buildInsights, parseVoiceChoice, spokenRupees, spokenGreeting, spokenKhata, spokenMenu, spokenReport, spokenStock, spokenSuppliers, toSpoken, voiceIntent, type Insight, type VoiceIntent } from "./voice";
 
-export type Route = "greet" | "confirm" | "cancel" | "no_pending" | VoiceIntent | "readonly" | "no_ai";
+export type Route = "call" | "greet" | "confirm" | "cancel" | "no_pending" | VoiceIntent | "readonly" | "no_ai";
 
 export interface TurnResult {
   route: Route;
@@ -61,6 +63,20 @@ export async function voiceTurn(db: Db, merchantId: string, text: string, opts: 
   // the owner asked something else instead of answering haan/nahi: drop the waiting action, like a person would
   const stale = (await getOpenPending(db, merchantId, opts.now)) as PendingRow | undefined;
   if (stale) await applyChoice(db, merchantId, stale, 2);
+
+  // 1b. "Sharma ji ko reminder call karo": find the customer, ask for a haan, then Call Saathi dials (see executePending)
+  if (mentionsCall(text)) {
+    const snap = await loadSnapshot(db, merchantId, { now: opts.now });
+    const req = parseCallRequest(text, khataOverview(snap).accounts);
+    if (req.kind === "nameless") return done({ route: "call", replyText: "Kisko call lagani hai? Customer ka naam boliye, jaise Sharma ji ko reminder call karo.", tools: [], links: [] });
+    if (req.kind === "ambiguous") return done({ route: "call", replyText: `Kaun sa customer? ${req.names.join(", ")}. Poora naam boliye.`, tools: [], links: [] });
+    if (req.kind === "one") {
+      const a = req.account;
+      if (opts.readonly) return done({ route: "readonly", replyText: "Yeh demo hai, isliye yahan se call nahi lagti. Asli dukaan mein bolte hi customer ko reminder call jaati hai.", tools: [], links: [] });
+      await createPendingAction(db, merchantId, "call_customer", { customerId: a.customerId, name: a.name, amountPaise: a.outstandingPaise, overdueDays: a.oldestUnpaidDays });
+      return done({ route: "call", replyText: `${a.name} ka ${spokenRupees(a.outstandingPaise)} baaki hai, ${a.oldestUnpaidDays} din se. Reminder call lagaun? Haan ya nahi bolein.`, tools: [], links: [] });
+    }
+  }
 
   // 2. the common "show me" asks: answered from the same report data as the dashboard, no AI call
   const intent = voiceIntent(text);

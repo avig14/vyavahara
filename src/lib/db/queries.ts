@@ -300,7 +300,7 @@ export async function addCashSale(db: Db, a: { merchantId: string; amountPaise: 
 
 /* ---------------- pending actions (1 = confirm / 2 = cancel) ---------------- */
 
-export type PendingKind = "block_credit" | "set_limit" | "adjust_stock" | "udhaar" | "stock_in" | "pay_vendor" | "create_po";
+export type PendingKind = "block_credit" | "set_limit" | "adjust_stock" | "udhaar" | "stock_in" | "pay_vendor" | "create_po" | "call_customer";
 
 export async function createPendingAction(db: Db, merchantId: string, kind: PendingKind, payload: unknown, ttlMinutes = 30, now = new Date()) {
   // a new question replaces any older open one, so "1" always means the latest

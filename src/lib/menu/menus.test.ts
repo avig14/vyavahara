@@ -68,7 +68,7 @@ describe("every leaf renders from the seed without AI or DB", () => {
     });
   it("out-of-range digit is not a leaf", () => {
     expect(renderLeaf("1", 9, env)).toBeNull();
-    expect(renderLeaf("5", 7, env)).toBeNull();
+    expect(renderLeaf("5", 8, env)).toBeNull();
   });
   it("leaves that need input wait for it", () => {
     expect(renderLeaf("4", 4, env)!.next?.kind).toBe("custom_dates");
