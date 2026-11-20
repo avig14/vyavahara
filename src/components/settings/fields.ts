@@ -56,6 +56,7 @@ export const GROUPS: readonly GroupDef[] = [
   { id: "recommendations", title: "Recommendations", description: "The cut-offs that decide what Vyavahāra suggests." },
   { id: "ingest", title: "Bills and payments", description: "How strictly bills, soundbox baskets and payment screenshots are matched." },
   { id: "alerts", title: "Alerts", description: "Which proactive messages go out, and when." },
+  { id: "calls", title: "Call Saathi", hindi: "कॉल साथी", description: "Automatic reminder calls for udhaar that stays unpaid." },
   { id: "festivals", title: "Festivals", hindi: "त्योहार", description: "Festivals you care about, added to the built-in calendar." },
   { id: "language", title: "Language", hindi: "भाषा", description: "The language Vyavahāra writes in." },
 ];
@@ -134,6 +135,14 @@ export const FIELDS: readonly FieldDef[] = [
   { path: "alerts.khataRed", group: "alerts", label: "Red khata customers", kind: "switch", switchLabel: "Send alerts", description: "Proactive messages about khata customers in the red band." },
   { path: "alerts.sendFromHour", group: "alerts", label: "Send messages from", kind: "hour", description: "No proactive messages before this hour, India time. Must be earlier than the hour below." },
   { path: "alerts.sendUntilHour", group: "alerts", label: "Send messages until", kind: "hour", description: "No proactive messages from this hour on, India time." },
+  { path: "calls.enabled", group: "calls", label: "Reminder calls", kind: "switch", switchLabel: "Call overdue customers", description: "Call Saathi phones customers whose udhaar is overdue. Manage it on the Call Saathi page." },
+  { path: "calls.minOverdueDays", group: "calls", label: "Call when overdue by", kind: "int", unit: "days", description: "Start calling once the oldest unpaid credit is this old." },
+  { path: "calls.minOutstandingPaise", group: "calls", label: "Smallest balance to call about", kind: "paise", description: "Customers owing less than this are not called." },
+  { path: "calls.maxAttempts", group: "calls", label: "Most calls per customer", kind: "int", unit: "calls", description: "Stop after this many calls." },
+  { path: "calls.retryGapDays", group: "calls", label: "Call again after", kind: "int", unit: "days", description: "1 = daily, 2 = alternate days, 7 = weekly." },
+  { path: "calls.fromHour", group: "calls", label: "Call from", kind: "hour", description: "No calls before this hour, India time." },
+  { path: "calls.untilHour", group: "calls", label: "Call until", kind: "hour", description: "No calls from this hour on, India time." },
+  { path: "calls.maxCallsPerRun", group: "calls", label: "Most calls per run", kind: "int", unit: "calls", description: "Safety cap each time Call Saathi runs." },
   { path: "alerts.cooldownDays", group: "alerts", label: "Wait before repeating an alert", kind: "int", unit: "days", description: "Fewest days between two alerts of the same kind." },
 
   // ---- festivals and language

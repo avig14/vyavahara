@@ -10,6 +10,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/dashboard/inventory", label: "Stock", hindi: "स्टॉक" },
   { href: "/dashboard/vendors", label: "Suppliers", hindi: "सप्लायर" },
   { href: "/dashboard/khata", label: "Khata", hindi: "खाता" },
+  { href: "/dashboard/calls", label: "Call Saathi", hindi: "कॉल साथी" },
   { href: "/dashboard/customers", label: "Customers", hindi: "ग्राहक" },
   { href: "/dashboard/reports", label: "Reports", hindi: "रिपोर्ट" },
   { href: "/dashboard/growth", label: "Growth", hindi: "ग्रोथ" },
