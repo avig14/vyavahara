@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="size" content="1080x900">
+<meta name="kind" content="whatsapp">
+<title>wa-stock-alert</title>
+<link rel="stylesheet" href="base.css">
+<style>.card{height:900px}</style>
+</head><body>
+<div class="card"><header class="top"><img src="../../brand/vyavahara-logo-mark-v1.svg" alt=""><b>Vyavahāra</b><span>व्यवहार</span></header>
+<main class="pad" style="gap:24px">
+<span class="pill warn"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.2v.1" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Stock kam hai</span>
+<div><div class="label">Stock · स्टॉक</div><div class="h2">{{item}}: sirf {{left}} bacha</div></div>
+<div style="height:28px;border-radius:14px;background:var(--rule);overflow:hidden"><div style="height:100%;width:{{meter}}%;background:var(--warn)"></div></div>
+<div class="sub">Saathi ne supplier ka order draft kiya hai:</div>
+<div class="bubble out" style="align-self:stretch">Namaste {{supplier}}, {{item}} {{qty}} bhej dijiye. Dhanyavaad!</div>
+<div class="hint" style="margin-top:auto">Order bhejne ke liye <b>haan</b> likhein</div>
+</main><footer class="foot"><span>Stock · Saathi</span><em>{{note}}</em></footer></div>
+</body></html>

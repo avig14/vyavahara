@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+<title>Saathi Hinglish assistant</title>
+<rect x="0" y="0" width="96" height="96" rx="16" fill="#E0F5FD" id="icn-bg"/>
+<g id="icn-chat">
+<path d="M20 26Q20 18 28 18H68Q76 18 76 26V54Q76 62 68 62H44L30 76V62H28Q20 62 20 54Z" fill="#FFFFFF" stroke="#012970" stroke-width="4" stroke-linejoin="round"/>
+<circle cx="38" cy="40" r="4" fill="#012970"/>
+<circle cx="58" cy="40" r="4" fill="#012970"/>
+<path d="M40 50Q48 56 56 50" fill="none" stroke="#02BAF2" stroke-width="4" stroke-linecap="round"/>
+<path d="M76 12L79 20L87 23L79 26L76 34L73 26L65 23L73 20Z" fill="#02BAF2"/>
+</g>
+</svg>

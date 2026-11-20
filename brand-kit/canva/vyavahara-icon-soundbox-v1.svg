@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <title>UPI soundbox</title>
+  <rect x="0" y="0" width="96" height="96" rx="16" fill="#E0F5FD" id="icn-bg" />
+  <g id="icn-soundbox">
+    <rect x="22" y="14" width="44" height="68" rx="9" fill="#012970" />
+    <rect x="28" y="22" width="32" height="16" rx="4" fill="#02BAF2" />
+    <rect x="32" y="28" width="24" height="4" rx="2" fill="#FFFFFF" />
+    <circle cx="33" cy="50" r="2.5" fill="#ABC0D7" />
+    <circle cx="44" cy="50" r="2.5" fill="#ABC0D7" />
+    <circle cx="55" cy="50" r="2.5" fill="#ABC0D7" />
+    <circle cx="33" cy="60" r="2.5" fill="#ABC0D7" />
+    <circle cx="44" cy="60" r="2.5" fill="#ABC0D7" />
+    <circle cx="55" cy="60" r="2.5" fill="#ABC0D7" />
+    <circle cx="33" cy="70" r="2.5" fill="#ABC0D7" />
+    <circle cx="44" cy="70" r="2.5" fill="#ABC0D7" />
+    <circle cx="55" cy="70" r="2.5" fill="#ABC0D7" />
+    <path d="M70.4 34.7L71.7 37.2L72.6 39.5L73 41L73.2 43.3L73.2 44.7L73.1 46.2L72.6 48.5L71.7 50.8L70.4 53.3L70.3 53.8L70.3 54.1L70.4 54.6L70.7 55.2L71 55.4L71.4 55.7L72.1 55.7L72.8 55.6L73.2 55.3L73.4 55L74.5 53.1L75.6 50.4L76.2 48.6L76.5 46.7L76.7 44.9L76.7 43L76.5 41.3L76.4 40.3L75.9 38.5L75.6 37.6L74.9 35.7L74 34L73.4 33L72.9 32.5L72.3 32.3L71.6 32.3L71 32.6L70.5 33.1L70.3 33.5L70.3 34.2Z" fill="#02BAF2" fill-rule="evenodd" />
+    <path d="M77.3 30.2L78.6 32.7L79.2 34L80.1 36.5L80.4 37.8L81 40.3L81.1 41.5L81.2 44L81.1 46.5L81 47.7L80.4 50.2L80.1 51.5L79.2 54L78.6 55.3L78 56.5L76.4 59.3L76.3 59.7L76.3 60.1L76.4 60.6L76.7 61.2L77 61.4L77.4 61.6L78.1 61.7L78.6 61.6L78.9 61.5L79.2 61.3L79.5 60.9L81.1 58.2L81.8 56.8L82.9 54L83.8 51.1L84.4 48.3L84.7 45.5L84.7 44L84.6 41.2L84.4 39.7L83.8 36.9L83 34.1L81.8 31.3L80.3 28.5L79.4 27L79 26.6L78.6 26.4L77.9 26.3L77.3 26.4L76.7 26.8L76.4 27.4L76.3 27.9L76.4 28.6Z" fill="#02BAF2" fill-rule="evenodd" />
+  </g>
+</svg>

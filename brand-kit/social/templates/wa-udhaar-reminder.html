@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="size" content="1080x900">
+<meta name="kind" content="whatsapp">
+<title>wa-udhaar-reminder</title>
+<link rel="stylesheet" href="base.css">
+<style>.card{height:900px}</style>
+</head><body>
+<div class="card"><header class="top"><img src="../../brand/vyavahara-logo-mark-v1.svg" alt=""><b>Vyavahāra</b><span>व्यवहार</span></header>
+<main class="pad" style="gap:24px">
+<span class="pill warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>{{days}} din late</span>
+<div><div class="label">Khata · खाता</div><div class="h2">{{customer}} · ₹{{amount}}</div></div>
+<div class="sub">Saathi ne yeh reminder draft kiya hai:</div>
+<div class="bubble out" style="align-self:stretch">Namaste {{customer}}, {{shop}} se. Aapka ₹{{amount}} ka udhaar {{days}} din se baaki hai. Jab ho sake, UPI kar dijiye. Dhanyavaad!</div>
+<div class="hint" style="margin-top:auto">Bhejne ke liye <b>haan</b> likhein · badalna ho to batayein</div>
+</main><footer class="foot"><span>Khata · Saathi</span><em>{{note}}</em></footer></div>
+</body></html>

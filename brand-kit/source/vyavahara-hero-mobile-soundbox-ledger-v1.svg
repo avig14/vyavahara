@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="900" viewBox="0 0 750 900">
+<title>A soundbox payment lands as a line in the rozmel ledger, which feeds Khata, Stock and Saathi</title>
+<rect x="0" y="0" width="750" height="900" fill="#F7F9FC" id="hmob-bg"/>
+<g id="hmob-blobs">
+<circle cx="600" cy="220" r="200" fill="#E0F5FD"/>
+<circle cx="90" cy="760" r="110" fill="#E0F5FD"/>
+<circle cx="690" cy="60" r="32" fill="#97DCF9"/>
+</g>
+<g id="hmob-soundbox">
+<rect x="265" y="50" width="220" height="270" rx="28" fill="#012970" id="hmob-soundbox-body"/>
+<rect x="265" y="50" width="220" height="40" rx="20" fill="#021D50"/>
+<circle cx="375" cy="70" r="6" fill="#02BAF2"/>
+<rect x="295" y="114" width="160" height="70" rx="12" fill="#02BAF2" id="hmob-soundbox-screen"/>
+<rect x="311" y="132" width="70" height="10" rx="5" fill="#FFFFFF"/>
+<rect x="311" y="152" width="110" height="16" rx="8" fill="#FFFFFF"/>
+<circle cx="315" cy="226" r="6" fill="#ABC0D7"/>
+<circle cx="345" cy="226" r="6" fill="#ABC0D7"/>
+<circle cx="375" cy="226" r="6" fill="#ABC0D7"/>
+<circle cx="405" cy="226" r="6" fill="#ABC0D7"/>
+<circle cx="435" cy="226" r="6" fill="#ABC0D7"/>
+<circle cx="315" cy="252" r="6" fill="#ABC0D7"/>
+<circle cx="345" cy="252" r="6" fill="#ABC0D7"/>
+<circle cx="375" cy="252" r="6" fill="#ABC0D7"/>
+<circle cx="405" cy="252" r="6" fill="#ABC0D7"/>
+<circle cx="435" cy="252" r="6" fill="#ABC0D7"/>
+<circle cx="315" cy="278" r="6" fill="#ABC0D7"/>
+<circle cx="345" cy="278" r="6" fill="#ABC0D7"/>
+<circle cx="375" cy="278" r="6" fill="#ABC0D7"/>
+<circle cx="405" cy="278" r="6" fill="#ABC0D7"/>
+<circle cx="435" cy="278" r="6" fill="#ABC0D7"/>
+</g>
+<g id="hmob-soundwaves">
+<path d="M509 124Q543 164 509 204" fill="none" stroke="#02BAF2" stroke-width="8" stroke-linecap="round"/>
+<path d="M535 94Q593 164 535 234" fill="none" stroke="#64D3F6" stroke-width="8" stroke-linecap="round"/>
+<path d="M561 64Q643 164 561 264" fill="none" stroke="#ADE6F9" stroke-width="8" stroke-linecap="round"/>
+</g>
+<g id="hmob-flow">
+<path d="M375 340V382" fill="none" stroke="#012970" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 14"/>
+<polygon points="361,380 389,380 375,402" fill="#012970"/>
+</g>
+<g id="hmob-ledger">
+<rect x="55" y="400" width="640" height="290" rx="16" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hmob-ledger-card"/>
+<path d="M55 464V416Q55 400 71 400H679Q695 400 695 416V464Z" fill="#012970" id="hmob-ledger-header"/>
+<rect x="83" y="426" width="46" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="175" y="426" width="90" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="395" y="426" width="56" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="485" y="426" width="64" height="10" rx="5" fill="#ABC0D7"/>
+<rect x="575" y="426" width="70" height="10" rx="5" fill="#02BAF2"/>
+<rect x="57" y="466" width="636" height="60" fill="#E0F5FD" id="hmob-ledger-newest"/>
+<rect x="57" y="466" width="6" height="60" fill="#02BAF2"/>
+<rect x="83" y="490" width="40" height="10" rx="5" fill="#012970"/>
+<rect x="175" y="490" width="110" height="10" rx="5" fill="#012970"/>
+<rect x="395" y="484" width="52" height="22" rx="11" fill="#02BAF2"/>
+<rect x="485" y="490" width="46" height="10" rx="5" fill="#012970"/>
+<rect x="575" y="488" width="66" height="14" rx="7" fill="#012970"/>
+<rect x="57" y="526" width="636" height="2" fill="#DAE0E7"/>
+<rect x="83" y="550" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="175" y="550" width="90" height="10" rx="5" fill="#7A8798"/>
+<rect x="395" y="544" width="52" height="22" rx="11" fill="#97DCF9"/>
+<rect x="485" y="550" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="575" y="550" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="57" y="586" width="636" height="2" fill="#DAE0E7"/>
+<rect x="83" y="610" width="40" height="10" rx="5" fill="#7A8798"/>
+<rect x="175" y="610" width="130" height="10" rx="5" fill="#7A8798"/>
+<rect x="395" y="604" width="52" height="22" rx="11" fill="#DAE0E7"/>
+<rect x="485" y="610" width="52" height="10" rx="5" fill="#7A8798"/>
+<rect x="575" y="610" width="58" height="10" rx="5" fill="#7A8798"/>
+<rect x="57" y="646" width="636" height="42" fill="#F7F9FC"/>
+<rect x="83" y="662" width="80" height="10" rx="5" fill="#012970"/>
+<rect x="585" y="658" width="80" height="18" rx="9" fill="#02BAF2"/>
+</g>
+<g id="hmob-modules">
+<path d="M155 690L155 725" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<path d="M375 690L375 725" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<path d="M595 690L595 725" fill="none" stroke="#97DCF9" stroke-width="3"/>
+<circle cx="155" cy="690" r="7" fill="#02BAF2"/>
+<circle cx="375" cy="690" r="7" fill="#02BAF2"/>
+<circle cx="595" cy="690" r="7" fill="#02BAF2"/>
+<rect x="55" y="725" width="200" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hmob-module-khata"/>
+<rect x="75" y="745" width="44" height="44" rx="10" fill="#FFF2D8"/>
+<circle cx="97" cy="767" r="12" fill="none" stroke="#935B00" stroke-width="4"/>
+<path d="M97 760V767L103 771" fill="none" stroke="#935B00" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="75" y="805" width="90" height="10" rx="5" fill="#012970"/>
+<rect x="275" y="725" width="200" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hmob-module-stock"/>
+<rect x="295" y="745" width="44" height="44" rx="10" fill="#E0F5FD"/>
+<rect x="305" y="771" width="12" height="10" fill="#012970"/>
+<rect x="319" y="761" width="12" height="20" fill="#02BAF2"/>
+<rect x="295" y="805" width="70" height="10" rx="5" fill="#012970"/>
+<rect x="495" y="725" width="200" height="110" rx="14" fill="#FFFFFF" stroke="#012970" stroke-width="3" id="hmob-module-saathi"/>
+<rect x="515" y="745" width="44" height="44" rx="10" fill="#E0F5FD"/>
+<path d="M525 759Q525 755 529 755H545Q549 755 549 759V771Q549 775 545 775H535L528 782V775Q525 775 525 771Z" fill="#012970"/>
+<circle cx="533" cy="765" r="2.5" fill="#FFFFFF"/>
+<circle cx="541" cy="765" r="2.5" fill="#FFFFFF"/>
+<rect x="515" y="805" width="100" height="10" rx="5" fill="#012970"/>
+</g>
+<g id="hmob-coins">
+<circle cx="90" cy="340" r="26" fill="#02BAF2"/>
+<circle cx="90" cy="340" r="15" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+<circle cx="140" cy="380" r="20" fill="#97DCF9"/>
+<circle cx="140" cy="380" r="11" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+</g>
+</svg>
